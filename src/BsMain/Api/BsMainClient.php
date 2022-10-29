@@ -5,7 +5,7 @@ namespace BsMain\Api;
 use BsMain\Data\SectionSettingsDataCreate;
 use BsMain\Exception\BsAppApiException;
 
-class BsGroupManagerClient extends BsApiClient {
+class BsMainClient extends BsApiClient {
 	
 	public function getCourseOffering($courseId) {
 		$response = $this->request($this->url('/lp/1.31/courses/%d', $courseId), 'the course');

@@ -12,5 +12,10 @@
   ],
   "require": {
     "league/oauth2-client": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "BsMain\\": "src/BsMain/"
+    }
   }
 }

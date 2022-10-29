@@ -1,0 +1,16 @@
+{
+  "name": "allardnaber/bsmain",
+  "description": "Basic Brightspace API interaction",
+  "type": "library",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Allard Naber",
+      "email": "allardnaber@gmail.com"
+    }
+  ],
+  "require": {
+    "league/oauth2-client": "*"
+  }
+}

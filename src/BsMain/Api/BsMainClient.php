@@ -122,4 +122,13 @@ class BsMainClient extends BsApiClient {
 		$this->request($this->url('/lp/1.31/%d/sections/%d', $courseId, $sectionId), 'the section', 'DELETE');
 	}
 
+	public function importCourseContent(int $courseId, string $filename) {
+		$options = $this->addFileToMultipartOptions('file', $filename, 'application/zip');
+		$response = $this->request(
+			$this->url('/le/1.51/import/%d/imports/', $courseId),
+			'the import job', 'POST', null, $options);
+
+		return \BsMain\Data\JobToken::create($response);
+	}
+
 }

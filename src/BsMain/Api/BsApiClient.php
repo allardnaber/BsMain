@@ -5,6 +5,7 @@ namespace BsMain\Api;
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
 use BsMain\Exception\BsAppApiException;
+use GuzzleHttp\Psr7\Utils;
 
 /**
  * Base class with utilities to interact with the Brightspace API.
@@ -115,18 +116,35 @@ abstract class BsApiClient {
 	 * @throws BsAppApiException If the API reports an error. This exception
 	 *            automatically selects the corresponding error description.
 	 */
-	protected function request($url, $dataType = 'object', $method = 'GET', $jsonData = null) {
+	protected function request($url, $dataType = 'object', $method = 'GET', $jsonData = null, $options = []) {
 		try {
-			$request = $this->provider->getAuthenticatedRequest($method, $url, $this->tokenHandler->getAccessToken());
+			$request = $this->provider->getAuthenticatedRequest($method, $url, $this->tokenHandler->getAccessToken(), $options);
+
 			if ($jsonData !== null) {
 				$request = $request->withBody($this->stringToStream($jsonData));
 			}
-			$response = $this->http->send($request);
+			$response = $this->http->send($request, $options);
 			return $response->getBody()->getContents();
 		} catch (\GuzzleHttp\Exception\RequestException $ex) {
 			$status = $ex->getResponse() !== null ? $ex->getResponse()->getStatusCode() : 0;
 			throw new BsAppApiException($method, $dataType, $status);
 		}
+	}
+
+	protected function addFileToMultipartOptions(string $visibleName, string $actualFilename, string $contentType, $options = []): array {
+		if (!isset($options['multipart'])) {
+			$options['multipart'] = [];
+		}
+		$fileInfo = pathinfo($actualFilename);
+		$options['multipart'][] = [
+			'name' => $visibleName,
+			'contents' => Utils::tryFopen($actualFilename, 'r'),
+			'filename' => $fileInfo['basename'],
+			'headers' => [
+				'Content-Type' => $contentType
+			]
+		];
+		return $options;
 	}
 
 	/**

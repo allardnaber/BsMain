@@ -131,4 +131,10 @@ class BsMainClient extends BsApiClient {
 		return \BsMain\Data\JobToken::create($response);
 	}
 
+	public function getImportCourseContentJobStatus(int $courseId, string $jobToken) {
+		$response = $this->request(
+			$this->url('/le/1.51/import/%d/imports/%s', $courseId, $jobToken), 'the import status');
+		return \BsMain\Data\GetImportJobResponse::create($response);
+	}
+
 }

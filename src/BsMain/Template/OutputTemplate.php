@@ -35,7 +35,6 @@ class OutputTemplate extends \Smarty {
 	
 	public function setLanguage($cultureCode) {
 		try {
-			$cultureCode='nl';
 			$this->lang = preg_replace('/[^a-z]/', '', strtolower(substr($cultureCode, 0, 2)));
 			$this->configLoad($this->lang . '.conf');
 		} catch (\SmartyException $ex) {

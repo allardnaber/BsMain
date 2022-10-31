@@ -11,7 +11,8 @@
     }
   ],
   "require": {
-    "league/oauth2-client": "*"
+    "league/oauth2-client": "*",
+    "smarty/smarty": "4.0.*"
   },
   "autoload": {
     "psr-4": {

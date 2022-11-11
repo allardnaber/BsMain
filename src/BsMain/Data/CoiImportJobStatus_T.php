@@ -12,6 +12,7 @@ class CoiImportJobStatus_T extends GenericObject {
 	const Uploading = 'UPLOADING';
 	const ReadyToImportNatively = 'READYTOIMPORTNATIVELY';
 	const Importing = 'IMPORTING';
+	const ImportFailed = 'IMPORTFAILED';
 	const Completed = 'COMPLETED';
 	const Timeout = 'Timeout';
 	const Unknown = 'UNKNOWN';

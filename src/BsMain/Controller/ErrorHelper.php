@@ -22,7 +22,9 @@ class ErrorHelper {
 	}
 	
 	public static function errorHandler($severity, $message, $file, $line): bool {
-		throw new \ErrorException($message, 0, $severity, $file, $line);
+		if ($severity & ~(E_DEPRECATED | E_STRICT | E_NOTICE)) {
+			throw new \ErrorException($message, 0, $severity, $file, $line);
+		}
 	}
 	
 	private function getErrorInfo() {

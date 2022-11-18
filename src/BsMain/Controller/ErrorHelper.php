@@ -25,6 +25,7 @@ class ErrorHelper {
 		if ($severity & ~(E_DEPRECATED | E_STRICT | E_NOTICE)) {
 			throw new \ErrorException($message, 0, $severity, $file, $line);
 		}
+		return true; // skip further error handling
 	}
 	
 	private function getErrorInfo() {

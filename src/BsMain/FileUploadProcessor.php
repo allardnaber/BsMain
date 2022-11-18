@@ -26,8 +26,10 @@ class FileUploadProcessor {
 	public static function verifyUpload($fieldName) {
 		$fileError = $_FILES[$fieldName]['error'] ?? '';
 		if (empty($_FILES) || $fileError === UPLOAD_ERR_INI_SIZE) {
-			$maxAllowedSize = ini_get('upload_max_filesize');
-			
+			$maxFileSize = self::convertConfigSizeToBytes(ini_get('upload_max_filesize'));
+			$maxPostSize = self::convertConfigSizeToBytes(ini_get('post_max_size'));
+			$maxAllowedSize = $maxFileSize < $maxPostSize ? ini_get('upload_max_filesize') : ini_get('post_max_size');
+
 			// If the request is smaller than the PHP limits,
 			// the webserver has most likely blocked the request.
 			if (isset($_SERVER['CONTENT_LENGTH']) &&

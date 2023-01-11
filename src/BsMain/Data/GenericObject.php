@@ -43,7 +43,7 @@ abstract class GenericObject {
 
 	public function __construct($json = null, $isDecoded = false) {
 		if ($json !== null) {
-			$decoded = $isDecoded ? $json : json_decode($json, true);
+			$this->data = $isDecoded ? $json : json_decode($json, true);
 
 			$this->verifyDataFields();
 

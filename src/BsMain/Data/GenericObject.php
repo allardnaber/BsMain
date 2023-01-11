@@ -6,7 +6,7 @@ namespace BsMain\Data;
  * Description of GenericObject
  */
 abstract class GenericObject {
-	protected $data;
+	protected $data = [];
 	
 	public static function create($json = null, $isDecoded = false): GenericObject {
 		if ($json === null) {
@@ -28,22 +28,33 @@ abstract class GenericObject {
 	public static function createArray($json, $isDecoded = false): array {
 		$result = [];
 		$decoded = $isDecoded ? $json : json_decode($json, true);
-		$first = true;
+		//$first = true;
 		foreach ($decoded as $item) {
-			$obj = new static($item);
+			//$obj = new static($item);
+			/*$obj = new static($item);
 			if ($first) {
 				$first = false;
 				$obj->verifyDataFields();
-			}
+			}*/
 			$result[] = new static($item, true);
 		}
 		return $result;
     }
 
-	protected function __construct($json) {
-		$this->data = $json;
+	public function __construct($json = null, $isDecoded = false) {
+		if ($json !== null) {
+			$decoded = $isDecoded ? $json : json_decode($json, true);
+
+			$this->verifyDataFields();
+
+		}
 		$this->postCreationProcessing();
 	}
+
+	/*protected function __construct($json) {
+		$this->data = $json;
+		$this->postCreationProcessing();
+	}*/
 	
 	/**
 	 * Verifies if the expected fields are set to prevent errors when interacting with the object.s

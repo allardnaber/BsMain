@@ -21,6 +21,7 @@
     }
   },
   "scripts": {
-    "post-update-cmd": "BsMain\\Controller\\RouteFinder::findRoutes"
+    "post-update-cmd": "BsMain\\Controller\\RouteFactory::fromComposer",
+    "post-install-cmd": "BsMain\\Controller\\RouteFactory::fromComposer"
   }
 }

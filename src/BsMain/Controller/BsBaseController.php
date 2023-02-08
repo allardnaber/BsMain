@@ -37,7 +37,7 @@ use BsMain\Template\OutputTemplate;
 				return $result;
 			}
 		}
-		return $actions['root'];
+		return $actions[RouteFactory::ROOT];
 	}
 
 	public function display($template) {

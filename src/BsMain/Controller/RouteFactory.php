@@ -21,7 +21,7 @@ class RouteFactory {
 	/**
 	 * Internal node name for the root route.
 	 */
-	private const ROOT = '<root>';
+	public const ROOT = '<root>';
 
 	/**
 	 * @var array List of methods (classname - method pair) that have a route attached.

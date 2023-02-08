@@ -14,9 +14,11 @@ use BsMain\Template\OutputTemplate;
 		$this->config = $config;
 	}
 
-	public static function handleRequest($output, $config) {
+	public static function handleRequest($config) {
+		$output = new OutputTemplate($config['smarty']);
 		try {
-			set_error_handler(['\\BsMain\\Controller\\ErrorHelper', 'errorHandler']);
+			set_error_handler([ErrorHelper::class, 'errorHandler']);
+
 			$action = self::getControllerMethod($GLOBALS[RouteFactory::ACTION_MAPPING_KEY]);
 			$className = $action[0];
 			$controller = new $className($output, $config);

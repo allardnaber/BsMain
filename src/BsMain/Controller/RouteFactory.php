@@ -23,6 +23,8 @@ class RouteFactory {
 	 */
 	public const ROOT = '<root>';
 
+	public const ACTION_MAPPING_KEY = 'BsMainRouteMap';
+
 	/**
 	 * @var array List of methods (classname - method pair) that have a route attached.
 	 */
@@ -158,20 +160,18 @@ class RouteFactory {
 	public function saveForComposer(string $vendorDir): void {
 		$tpl = <<<EOL
 <?php
-\$GLOBALS['BsMainRouteMap'] = [
+\$GLOBALS['%s'] = [
 %s
 ];
 
-require './autoload.php';
+require 'autoload.php';
 EOL;
 
 		$entries = [];
 		foreach ($this->routes as $route => [ $classname, $method]) {
 			$entries[] = sprintf("  '%s' => [ '%s', '%s']" , str_replace("'", "\\'", $route), $classname, $method);
 		}
-
-		$output = sprintf($tpl, join(",\n", $entries));
-
+		$output = sprintf($tpl, self::ACTION_MAPPING_KEY, join(",\n", $entries));
 		file_put_contents(sprintf('%s/BsMain.php', $vendorDir), $output);
 	}
 

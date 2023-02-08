@@ -14,10 +14,10 @@ use BsMain\Template\OutputTemplate;
 		$this->config = $config;
 	}
 
-	public static function handleRequest($actions, $output, $config) {
+	public static function handleRequest($output, $config) {
 		try {
 			set_error_handler(['\\BsMain\\Controller\\ErrorHelper', 'errorHandler']);
-			$action = self::getControllerMethod($actions);
+			$action = self::getControllerMethod($GLOBALS[RouteFactory::ACTION_MAPPING_KEY]);
 			$className = $action[0];
 			$controller = new $className($output, $config);
 			call_user_func([$controller, $action[1]]);

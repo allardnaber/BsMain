@@ -158,7 +158,7 @@ class RouteFactory {
 	public function saveForComposer(string $vendorDir): void {
 		$tpl = <<<EOL
 <?php
-\$_GLOBALS['BsMainRouteMap'] = [
+\$GLOBALS['BsMainRouteMap'] = [
 %s
 ];
 

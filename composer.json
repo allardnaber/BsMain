@@ -19,9 +19,5 @@
     "psr-4": {
       "BsMain\\": "src/BsMain/"
     }
-  },
-  "scripts": {
-    "post-update-cmd": "BsMain\\Controller\\RouteFactory::fromComposer",
-    "post-install-cmd": "BsMain\\Controller\\RouteFactory::fromComposer"
   }
 }

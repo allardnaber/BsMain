@@ -5,7 +5,6 @@ namespace BsMain\Controller;
 use BsMain\Controller\Attributes\Root;
 use BsMain\Controller\Attributes\Route;
 use Composer\Script\Event;
-use DateTime;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;

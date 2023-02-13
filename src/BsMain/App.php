@@ -10,6 +10,7 @@ use BsMain\Template\OutputTemplate;
 class App {
 
 	public static function start(array $config): void {
+		session_start();
 		$output = new OutputTemplate($config['smarty']);
 		try {
 			set_error_handler([ErrorHelper::class, ErrorHelper::HANDLER_NAME]);

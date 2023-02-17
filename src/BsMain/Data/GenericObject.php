@@ -26,8 +26,8 @@ abstract class GenericObject {
 	public function __construct(?array $json) {
 		$this->data = $json ?? [];
 		if ($json !== null) {
-			$this->verifyDataFields();
 			$this->postCreationProcessing();
+			$this->verifyDataFields();
 		}
 	}
 

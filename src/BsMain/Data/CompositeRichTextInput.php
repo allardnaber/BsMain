@@ -17,7 +17,7 @@ class CompositeRichTextInput extends GenericObject {
 	}
 
 	public static function getBlankInput() {
-		$result = self::create();
+		$result = new self();
 		$result->Type = 'Text';
 		$result->Content = '';
 		return $result;

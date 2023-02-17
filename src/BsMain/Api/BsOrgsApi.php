@@ -2,11 +2,19 @@
 
 namespace BsMain\Api;
 
+use BsMain\Data\OrgUnit;
+use GuzzleHttp\Exception\GuzzleException;
+
 class BsOrgsApi extends BsResourceBaseApi {
 
-
-	public function getOrgUnitAncestorByType(int $orgUnit, $orgUnitType) {
-		$response = $this->request($this->url('/lp/1.31/orgstructure/%d/ancestors/?ouTypeId=%d', $orgUnit, $orgUnitType), 'the ancestor');
-		return \BsMain\Data\OrgUnit::createArray($response, false);
+	/**
+	 * @param int $orgUnit
+	 * @param int $orgUnitType
+	 * @return OrgUnit[]
+	 * @throws GuzzleException
+	 */
+	public function getOrgUnitAncestorsByType(int $orgUnit, int $orgUnitType): array {
+		return $this->requestArray($this->url('/lp/1.31/orgstructure/%d/ancestors/?ouTypeId=%d', $orgUnit, $orgUnitType),
+			OrgUnit::class, false, 'the ancestor');
 	}
 }

@@ -2,9 +2,14 @@
 
 namespace BsMain\Api;
 
+use BsMain\Data\GenericObject;
 use BsMain\Exception\BsAppApiException;
+use BsMain\Exception\BsAppRuntimeException;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Stream;
 use GuzzleHttp\Psr7\Utils;
+use RuntimeException;
 
 abstract class BsResourceBaseApi {
 
@@ -21,7 +26,7 @@ abstract class BsResourceBaseApi {
 	 * @param string[] $values The values to put in the placeholder
 	 * @return string The final URL to call.
 	 */
-	protected function url($url, ...$values) {
+	protected function url(string $url, string ...$values): string {
 		$safeValues = array_map('urlencode', $values);
 		return vsprintf($this->client->getConfig()['brightspace']['api'] . $url, $safeValues);
 	}
@@ -32,17 +37,18 @@ abstract class BsResourceBaseApi {
 	 * and object list pages.
 	 *
 	 * @param string $url The url to the Brightspace API.
-	 * @return array The full result set with raw data.
+	 * @return array Associative array with the decoded values of the full result set. Paging info not included.
+	 * @throws GuzzleException
 	 */
-	protected function requestPaged($url, $dataType): array {
-		$response = json_decode($this->request($url, $dataType), true);
+	private function requestPaged(string $url, string $dataType): array {
+		$response = $this->request($url, $dataType);
 
 		if (isset($response['Items'])) {
 			return $this->getPagedResultSet($url, $dataType, $response);
 		} elseif (isset($response['Objects'])) {
 			return $this->getObjectListPage($url, $dataType, $response);
 		} else {
-			throw new \RuntimeException('Unknown paged type result from API. Items and Objects are both unspecified. ' .
+			throw new RuntimeException('Unknown paged type result from API. Items and Objects are both unspecified. ' .
 				'See https://docs.valence.desire2learn.com/basic/apicall.html#paged-data');
 		}
 	}
@@ -51,10 +57,12 @@ abstract class BsResourceBaseApi {
 	 * Handle the Paged Result Set as described on
 	 * https://docs.valence.desire2learn.com/basic/apicall.html#Api.PagedResultSet
 	 * @param string $url The original url to the Brightspace API.
-	 * @param type $response The initial response for the first page.
-	 * @return type
+	 * @param string $dataType
+	 * @param mixed $response The initial response for the first page.
+	 * @return array
+	 * @throws GuzzleException
 	 */
-	private function getPagedResultSet($url, $dataType, $response) {
+	private function getPagedResultSet(string $url, string $dataType, mixed $response): array {
 		$bookmarkSep = str_contains($url, '?') ? '?' : '&';
 		$result = $response['Items'];
 		while ($response['PagingInfo']['HasMoreItems']) {
@@ -69,11 +77,13 @@ abstract class BsResourceBaseApi {
 	/**
 	 * Handle the Object List Page as described on
 	 * https://docs.valence.desire2learn.com/basic/apicall.html#object-list-pages
-	 * @param type $url
-	 * @param type $response
-	 * @return type
+	 * @param string $url
+	 * @param string $dataType
+	 * @param mixed $response
+	 * @return array
+
 	 */
-	private function getObjectListPage($url, $dataType, $response) {
+	private function getObjectListPage(string $url, string $dataType, mixed $response): array {
 		$result = $response['Objects'];
 		// different than brightspace|api, because url already includes "/d2l/api"
 		$urlPrefix = $this->client->getConfig()['brightspace']['url'];
@@ -85,16 +95,78 @@ abstract class BsResourceBaseApi {
 	}
 
 	/**
+	 * @param string $url
+	 * @param string $resultClass
+	 * @param string $dataType
+	 * @param string $method
+	 * @param string|null $jsonData
+	 * @param array $options
+	 * @return mixed Decoded associative array from raw response.
+	 */
+	protected function request(
+		string $url,
+		string $resultClass,
+		string $dataType = 'object',
+		string $method = 'GET',
+		?string $jsonData = null,
+		array $options = []
+	): mixed {
+		$result = json_decode($this->requestRaw($url, $dataType, $method, $jsonData, $options), true);
+		$resultObj = new $resultClass($result);
+		if (!$resultObj instanceof GenericObject) {
+			throw new \InvalidArgumentException('Can only create subclasses of ' . GenericObject::class);
+		}
+		return $resultObj;
+	}
+
+	/**
+	 * @param string $url
+	 * @param string $resultClass
+	 * @param bool $paged
+	 * @param string $dataType
+	 * @param string $method
+	 * @param string|null $jsonData
+	 * @param array $options
+	 * @return array Decoded associative array from raw response.
+	 * @throws GuzzleException
+	 */
+	protected function requestArray(
+		string $url,
+		string $resultClass,
+		bool $paged,
+		string $dataType = 'object',
+		string $method = 'GET',
+		?string $jsonData = null,
+		array $options = []
+	): array {
+		$result = $paged
+			? $this->requestPaged($url, $dataType)
+			: json_decode($this->requestRaw($url, $dataType, $method, $jsonData, $options), true);
+		$resultObj = $resultClass::array($result);
+		if (count($resultObj) > 0 && !$resultObj[0] instanceof GenericObject) {
+			throw new \InvalidArgumentException('Can only create subclasses of ' . GenericObject::class);
+		}
+		return $resultObj;
+	}
+
+	/**
 	 * Perform the API request
 	 * @param string $url
 	 * @param string $dataType
 	 * @param string $method
-	 * @param string $jsonData
-	 * @return string
-	 * @throws BsAppApiException If the API reports an error. This exception
-	 *            automatically selects the corresponding error description.
+	 * @param string|null $jsonData
+	 * @param array $options
+	 * @return string Raw response from API
+	 * @throws BsAppRuntimeException
 	 */
-	protected function request($url, $dataType = 'object', $method = 'GET', $jsonData = null, $options = []): string {
+	protected function requestRaw(
+		string $url,
+		string $dataType = 'object',
+		string $method = 'GET',
+		?string $jsonData = null,
+		array $options = []
+	): string {
+
 		try {
 			$request = $this->client->getProvider()->getAuthenticatedRequest(
 				$method, $url, $this->client->getTokenHandler()->getAccessToken(), $options
@@ -105,9 +177,11 @@ abstract class BsResourceBaseApi {
 			}
 			$response = $this->client->getHttp()->send($request, $options);
 			return $response->getBody()->getContents();
-		} catch (\GuzzleHttp\Exception\RequestException $ex) {
+		} catch (RequestException $ex) {
 			$status = $ex->getResponse() !== null ? $ex->getResponse()->getStatusCode() : 0;
 			throw new BsAppApiException($method, $dataType, $status);
+		} catch (GuzzleException $ex) {
+			throw new BsAppRuntimeException($ex->getMessage());
 		}
 	}
 

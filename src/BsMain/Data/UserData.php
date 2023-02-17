@@ -22,7 +22,7 @@ namespace BsMain\Data;
  */
 class UserData extends GenericObject {
 	
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 
 			'OrgId', 'UserId', 'FirstName', 'MiddleName', 'LastName', 'UserName', 'ExternalEmail', 
 			'OrgDefinedId', 'UniqueIdentifier', 'Activation', 'LastAccessedDate', 'Pronouns'

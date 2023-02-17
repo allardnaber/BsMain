@@ -2,58 +2,44 @@
 
 namespace BsMain\Data;
 
+use InvalidArgumentException;
+
 /**
  * Description of GenericObject
  */
 abstract class GenericObject {
-	protected $data;
-	
-	public static function create($json = null, $isDecoded = false): GenericObject {
-		if ($json === null) {
-			return new static([]);
-		}
-		$decoded = $isDecoded ? $json : json_decode($json, true);
-		$result = new static($decoded);
-		$result->verifyDataFields();
-		return $result;
-    }
+	protected array $data = [];
 
 	/**
-	 * Creates an array of the specified object types. Object field validation occurs only on the
-	 * first instance.
-	 * @param string $json
-	 * @param bool $isDecoded
-	 * @return array
+	 * Creates an array of the specified object type from JSON that has already been converted into an associative array.
+	 * @param array $json
+	 * @return array Array of the specified object type
 	 */
-	public static function createArray($json, $isDecoded = false): array {
+	public static function array(array $json): array {
 		$result = [];
-		$decoded = $isDecoded ? $json : json_decode($json, true);
-		$first = true;
-		foreach ($decoded as $item) {
-			$obj = new static($item);
-			if ($first) {
-				$first = false;
-				$obj->verifyDataFields();
-			}
-			$result[] = new static($item, true);
+		foreach ($json as $item) {
+			$result[] = new static($item);
 		}
 		return $result;
-    }
-
-	protected function __construct($json) {
-		$this->data = $json;
-		$this->postCreationProcessing();
 	}
-	
+
+	public function __construct(?array $json) {
+		$this->data = $json ?? [];
+		if ($json !== null) {
+			$this->verifyDataFields();
+			$this->postCreationProcessing();
+		}
+	}
+
 	/**
 	 * Verifies if the expected fields are set to prevent errors when interacting with the object.s
-	 * @param array $json The decoded object of which the keys will be matched with expected fields.
-	 * @throws \Exception If one ore more expected fields are missing from $json.
+	 * @return void
+	 * @throws InvalidArgumentException If required fields are missing
 	 */
-	private function verifyDataFields() {
+	private function verifyDataFields(): void {
 		$missing = array_diff($this->getAvailableFields(), array_keys($this->data));
 		if (!empty($missing)) {
-			throw new \Exception(
+			throw new InvalidArgumentException(
 				sprintf('Creation of %s failed, due to these missing fields: %s', 
 					get_class($this), join(', ', $missing))
 			);
@@ -64,7 +50,7 @@ abstract class GenericObject {
 		if (in_array($field, $this->getAvailableFields())) {
 			return $this->data[$field] ?? null;
 		} else {
-			throw new \Exception(
+			throw new InvalidArgumentException(
 				sprintf('Object of type %s does not have field %s.', get_class($this), $field)
 			);
 		}
@@ -76,11 +62,11 @@ abstract class GenericObject {
 	
 	/**
 	 * Get a JSON representation of this object.
-	 * @param type $includeAllKeys If true, include the keys for fields that
+	 * @param bool $includeAllKeys If true, include the keys for fields that
 	 *                             have not been set, required for API update calls.
 	 * @return string JSON representation of this object.
 	 */
-	public function getJson($includeAllKeys = false) {
+	public function getJson(bool $includeAllKeys = false): string {
 		$raw = $includeAllKeys
 			  // Fill in empty keys with nulls
 			? array_merge(array_fill_keys($this->getAvailableFields(), null), $this->data)
@@ -103,16 +89,16 @@ abstract class GenericObject {
 
 	/**
 	 * List the fields that are available in this specific type of object.
-	 * @return array Field names of the current object type.
+	 * @return string[] Field names of the current object type.
 	 */
-	protected abstract function getAvailableFields();
+	protected abstract function getAvailableFields(): array;
 	
 	/**
 	 * Optionally provide a method that is called immediately after creating
 	 * this object. It can be used to instantiate typed values, like an
 	 * OrgUnitUser that has a Role and User value.
 	 */
-	protected function postCreationProcessing() {
+	protected function postCreationProcessing(): void {
 		
 	}
 

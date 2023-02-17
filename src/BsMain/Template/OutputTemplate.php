@@ -7,10 +7,10 @@ class OutputTemplate extends \Smarty {
 	private $lang = null;
 	private $errorTemplate;
 	
-	public function __construct($config, $language) {
+	public function __construct($config) {
 		parent::__construct();
 		$this->setPaths($config);
-		$this->configLoad($language . '.conf');
+		$this->configLoad($config['defaultLanguage'] . '.conf');
 		$this->errorTemplate = $config['errorTemplate'];
 	}
 	

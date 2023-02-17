@@ -13,7 +13,7 @@ namespace BsMain\Data;
  */
 class RoleInfo extends GenericObject {
 	
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 'Id', 'Code', 'Name' ];
 	}
 

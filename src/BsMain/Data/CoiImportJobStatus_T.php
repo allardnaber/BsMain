@@ -17,7 +17,7 @@ class CoiImportJobStatus_T extends GenericObject {
 	const Timeout = 'Timeout';
 	const Unknown = 'UNKNOWN';
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 'Status' ];
 	}
 

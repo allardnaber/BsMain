@@ -11,7 +11,7 @@ namespace BsMain\Data;
  */
 class JobToken extends GenericObject {
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 'JobToken' ];
 	}
 	

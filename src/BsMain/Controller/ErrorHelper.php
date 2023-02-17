@@ -6,12 +6,14 @@ class ErrorHelper {
 	
 	private $exception;
 	private $controller;
+
+	public const HANDLER_NAME = 'errorHandler';
 	
 	public function __construct(\Throwable $ex, BsBaseController $controller) {
 		$this->exception = $ex;
 		$this->controller = $controller;
 	}
-	
+
 	public function display() {
 		$errorInfo = $this->getErrorInfo();
 		http_response_code($errorInfo[2] ?? 500);
@@ -20,7 +22,7 @@ class ErrorHelper {
 		$this->controller->assign('error', $errorInfo[1]);
 		$this->controller->getOutput()->displayError();
 	}
-	
+
 	public static function errorHandler($severity, $message, $file, $line): bool {
 		if ($severity & ~(E_DEPRECATED | E_STRICT | E_NOTICE)) {
 			throw new \ErrorException($message, 0, $severity, $file, $line);

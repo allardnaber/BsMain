@@ -15,7 +15,7 @@ namespace BsMain\Data;
  */
 class SectionSettingsDataCreate extends GenericObject {
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [
 			'EnrollmentStyle', 'EnrollmentQuantity', 'AutoEnroll', 'RandomizeEnrollments', 'DescriptionsVisibleToEnrollees'
 		];

@@ -17,13 +17,13 @@ namespace BsMain\Data;
  */
 class SectionSettingsDataFetch extends GenericObject {
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 
 			'Name', 'EnrollmentStyle', 'EnrollmentQuantity', 'IsInitialized'
 		];
 	}
 
-	protected function postCreationProcessing() {
+	protected function postCreationProcessing(): void {
 		$this->IsInitialized = in_array($this->EnrollmentStyle,
 			['PeoplePerSectionAutoEnrollment', 'NumberOfSectionsAutoEnrollment']);
 	}

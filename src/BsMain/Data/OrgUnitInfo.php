@@ -16,7 +16,7 @@ namespace BsMain\Data;
  */
 class OrgUnitInfo extends GenericObject {
 	
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 'Id', 'Type', 'Name', 'Code' ];
 	}
 

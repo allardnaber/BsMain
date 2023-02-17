@@ -18,13 +18,13 @@ abstract class GenericObject {
 	public static function array(array $json): array {
 		$result = [];
 		foreach ($json as $item) {
-			$result[] = new static($item, true);
+			$result[] = new static($item);
 		}
 		return $result;
 	}
 
 	public function __construct(array $json) {
-		$this->data = json_decode($json, true);
+		$this->data = $json;
 		$this->verifyDataFields();
 		$this->postCreationProcessing();
 	}

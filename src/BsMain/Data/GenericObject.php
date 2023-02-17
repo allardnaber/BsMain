@@ -23,7 +23,7 @@ abstract class GenericObject {
 		return $result;
 	}
 
-	public function __construct(?array $json) {
+	public function __construct(?array $json = null) {
 		$this->data = $json ?? [];
 		if ($json !== null) {
 			$this->postCreationProcessing();

@@ -13,7 +13,7 @@
   "require": {
     "composer/composer": "*",
     "league/oauth2-client": "*",
-    "smarty/smarty": "4.0.*"
+    "smarty/smarty": "4.*"
   },
   "autoload": {
     "psr-4": {

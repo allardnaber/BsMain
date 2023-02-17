@@ -38,7 +38,6 @@ abstract class BsResourceBaseApi {
 	 *
 	 * @param string $url The url to the Brightspace API.
 	 * @return array Associative array with the decoded values of the full result set. Paging info not included.
-	 * @throws GuzzleException
 	 */
 	private function requestPaged(string $url, string $dataType): array {
 		$response = $this->request($url, $dataType);
@@ -60,7 +59,6 @@ abstract class BsResourceBaseApi {
 	 * @param string $dataType
 	 * @param mixed $response The initial response for the first page.
 	 * @return array
-	 * @throws GuzzleException
 	 */
 	private function getPagedResultSet(string $url, string $dataType, mixed $response): array {
 		$bookmarkSep = str_contains($url, '?') ? '?' : '&';
@@ -97,7 +95,7 @@ abstract class BsResourceBaseApi {
 	/**
 	 * @param string $url
 	 * @param string $resultClass
-	 * @param string $dataType
+	 * @param ?string $dataType
 	 * @param string $method
 	 * @param string|null $jsonData
 	 * @param array $options
@@ -106,12 +104,15 @@ abstract class BsResourceBaseApi {
 	protected function request(
 		string $url,
 		string $resultClass,
-		string $dataType = 'object',
+		?string $dataType = 'object',
 		string $method = 'GET',
 		?string $jsonData = null,
 		array $options = []
 	): mixed {
 		$result = json_decode($this->requestRaw($url, $dataType, $method, $jsonData, $options), true);
+		if ($dataType === null) {
+			return null;
+		}
 		$resultObj = new $resultClass($result);
 		if (!$resultObj instanceof GenericObject) {
 			throw new \InvalidArgumentException('Can only create subclasses of ' . GenericObject::class);
@@ -128,20 +129,22 @@ abstract class BsResourceBaseApi {
 	 * @param string|null $jsonData
 	 * @param array $options
 	 * @return array Decoded associative array from raw response.
-	 * @throws GuzzleException
 	 */
 	protected function requestArray(
 		string $url,
-		string $resultClass,
+		?string $resultClass,
 		bool $paged,
 		string $dataType = 'object',
 		string $method = 'GET',
 		?string $jsonData = null,
 		array $options = []
-	): array {
+	): array|null {
 		$result = $paged
 			? $this->requestPaged($url, $dataType)
 			: json_decode($this->requestRaw($url, $dataType, $method, $jsonData, $options), true);
+		if ($dataType === null) {
+			return null;
+		}
 		$resultObj = $resultClass::array($result);
 		if (count($resultObj) > 0 && !$resultObj[0] instanceof GenericObject) {
 			throw new \InvalidArgumentException('Can only create subclasses of ' . GenericObject::class);

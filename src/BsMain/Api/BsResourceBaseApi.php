@@ -40,7 +40,7 @@ abstract class BsResourceBaseApi {
 	 * @return array Associative array with the decoded values of the full result set. Paging info not included.
 	 */
 	private function requestPaged(string $url, string $dataType): array {
-		$response = $this->request($url, $dataType);
+		$response = json_decode($this->requestRaw($url, $dataType), true);
 
 		if (isset($response['Items'])) {
 			return $this->getPagedResultSet($url, $dataType, $response);
@@ -94,7 +94,7 @@ abstract class BsResourceBaseApi {
 
 	/**
 	 * @param string $url
-	 * @param string $resultClass
+	 * @param ?string $resultClass
 	 * @param ?string $dataType
 	 * @param string $method
 	 * @param string|null $jsonData
@@ -103,14 +103,14 @@ abstract class BsResourceBaseApi {
 	 */
 	protected function request(
 		string $url,
-		string $resultClass,
+		?string $resultClass,
 		?string $dataType = 'object',
 		string $method = 'GET',
 		?string $jsonData = null,
 		array $options = []
 	): mixed {
 		$result = json_decode($this->requestRaw($url, $dataType, $method, $jsonData, $options), true);
-		if ($dataType === null) {
+		if ($resultClass === null) {
 			return null;
 		}
 		$resultObj = new $resultClass($result);

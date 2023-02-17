@@ -82,7 +82,7 @@ class BsApiClient {
 		return $this->getResourceApi('courses', BsCoursesApi::class);
 	}
 	
-	public function enrollments(): BsCoursesApi {
+	public function enrollments(): BsEnrollmentsApi {
 		return $this->getResourceApi('enrollments', BsEnrollmentsApi::class);
 	}
 

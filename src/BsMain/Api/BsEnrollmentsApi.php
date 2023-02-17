@@ -27,7 +27,7 @@ class BsEnrollmentsApi extends BsResourceBaseApi {
 	 * @return ClasslistUser[]
 	 */
 	public function getClasslistForOrgUnit(int $orgUnit): array {
-		return$this->requestArray($this->url('/le/1.51/%d/classlist/paged/', $orgUnit),
+		return $this->requestArray($this->url('/le/1.51/%d/classlist/paged/', $orgUnit),
 			ClasslistUser::class, true, 'enrolled users');
 	}
 }

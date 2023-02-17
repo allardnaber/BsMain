@@ -2,6 +2,7 @@
 
 namespace BsMain\Controller;
 
+use BsMain\Configuration\Configuration;
 use BsMain\Template\OutputTemplate;
 use SmartyException;
 
@@ -12,7 +13,8 @@ class BsBaseController {
 
 	public function __construct(OutputTemplate $output, array $config) {
 		$this->output = $output;
-		$this->config = $config;
+		$configObj = new Configuration($config);
+		$this->config = $configObj->getResolvedConfig();
 	}
 
 	/**

@@ -4,9 +4,7 @@ namespace BsMain\Api;
 
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
-use BsMain\Exception\BsAppApiException;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Utils;
 use League\OAuth2\Client\Provider\GenericProvider;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 
@@ -84,7 +82,15 @@ class BsApiClient {
 		return $this->getResourceApi('courses', BsCoursesApi::class);
 	}
 	
-	public function enrollments(): BsCoursesApi {
+	public function enrollments(): BsEnrollmentsApi {
 		return $this->getResourceApi('enrollments', BsEnrollmentsApi::class);
+	}
+
+	public function groups(): BsGroupsApi {
+		return $this->getResourceApi('groups', BsGroupsApi::class);
+	}
+
+	public function sections(): BsSectionsApi {
+		return $this->getResourceApi('sections', BsSectionsApi::class);
 	}
 }

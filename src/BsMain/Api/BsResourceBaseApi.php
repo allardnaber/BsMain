@@ -122,13 +122,13 @@ abstract class BsResourceBaseApi {
 
 	/**
 	 * @param string $url
-	 * @param string $resultClass
+	 * @param ?string $resultClass
 	 * @param bool $paged
 	 * @param string $dataType
 	 * @param string $method
 	 * @param string|null $jsonData
 	 * @param array $options
-	 * @return array Decoded associative array from raw response.
+	 * @return array|null Decoded associative array from raw response.
 	 */
 	protected function requestArray(
 		string $url,
@@ -142,7 +142,7 @@ abstract class BsResourceBaseApi {
 		$result = $paged
 			? $this->requestPaged($url, $dataType)
 			: json_decode($this->requestRaw($url, $dataType, $method, $jsonData, $options), true);
-		if ($dataType === null) {
+		if ($resultClass === null) {
 			return null;
 		}
 		$resultObj = $resultClass::array($result);

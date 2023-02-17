@@ -15,11 +15,11 @@ namespace BsMain\Data;
  */
 class SectionDataFetch extends GroupDataFetch {
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 'GroupId', 'SectionId', 'Name', 'Code', 'Description', 'Enrollments' ];
 	}
 
-	protected function postCreationProcessing() {
+	protected function postCreationProcessing(): void {
 		$this->GroupId = $this->SectionId;
 	}
 

@@ -13,7 +13,7 @@ namespace BsMain\Data;
  */
 class GetImportJobResponse extends GenericObject {
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 'JobToken', 'TargetOrgUnitId', 'Status' ];
 	}
 	

@@ -22,7 +22,7 @@ namespace BsMain\Data;
  */
 class GroupCategoryDataCreate extends GenericObject {
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [
 			'Name', 'Description', 'EnrollmentStyle', 'EnrollmentQuantity',
 			'AutoEnroll', 'RandomizeEnrollments', 'NumberOfGroups',

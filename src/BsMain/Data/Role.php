@@ -22,7 +22,7 @@ namespace BsMain\Data;
  */
 class Role extends GenericObject {
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 
 			'Identifier', 'DisplayName', 'Code', 'Description', 'RoleAlias',
 			'IsCascading', 'AccessFutureCourses', 'AccessInactiveCourses',

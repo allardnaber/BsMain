@@ -12,7 +12,7 @@ namespace BsMain\Data;
  */
 class CompositeRichTextInput extends GenericObject {
 	
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 'Type', 'Content' ];
 	}
 

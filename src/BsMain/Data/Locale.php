@@ -15,7 +15,7 @@ namespace BsMain\Data;
  */
 class Locale extends GenericObject {
 	
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 'LocaleId', 'LocaleName', 'IsDefault', 'CultureCode', 'LanguageId' ];
 	}
 

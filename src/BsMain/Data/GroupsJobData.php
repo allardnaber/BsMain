@@ -14,7 +14,7 @@ namespace BsMain\Data;
  */
 class GroupsJobData extends GenericObject {
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 
 			'OrgUnitId', 'CategoryId', 'Status'
 		];

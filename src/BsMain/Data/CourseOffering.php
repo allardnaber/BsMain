@@ -22,7 +22,7 @@ namespace BsMain\Data;
  */
 class CourseOffering extends GenericObject {
 	
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 
 			'Identifier', 'Name', 'Code', 'IsActive', 'Path', 'StartDate', 'EndDate',
 			'CourseTemplate', 'Semester', 'Department', 'Description', 'CanSelfRegister'

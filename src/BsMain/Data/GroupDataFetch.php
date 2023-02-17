@@ -15,7 +15,7 @@ namespace BsMain\Data;
  */
 class GroupDataFetch extends GenericObject {
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 'GroupId', 'Name', 'Code', 'Description', 'Enrollments' ];
 	}
 

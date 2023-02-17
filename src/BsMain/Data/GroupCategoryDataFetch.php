@@ -22,7 +22,7 @@ namespace BsMain\Data;
  */
 class GroupCategoryDataFetch extends GenericObject {
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 'GroupCategoryId', 'Name', 'Description', 'MaxUsersPerGroup', 'Groups' ];
 	}
 

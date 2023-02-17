@@ -21,7 +21,7 @@ namespace BsMain\Data;
  */
 class ClasslistUser extends GenericObject {
 	
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [
 			'Identifier', 'ProfileIdentifier', 'DisplayName', 'Username',
 			'OrgDefinedId', 'Email', 'FirstName', 'LastName', 'RoleId',

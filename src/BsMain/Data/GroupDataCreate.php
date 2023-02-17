@@ -13,7 +13,7 @@ namespace BsMain\Data;
  */
 class GroupDataCreate extends GenericObject {
 
-	protected function getAvailableFields() {
+	protected function getAvailableFields(): array {
 		return [ 'Name', 'Code', 'Description' ];
 	}
 

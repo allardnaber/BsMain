@@ -35,8 +35,9 @@ class RouteFactory {
 	public function __construct(array $paths) {
 
 		foreach ($paths as $path) {
-			$this->collectRoutes($path);
+			$this->collectClassDefs($path);
 		}
+		$this->collectRoutes();
 		$this->finishCollectingRoutes();
 	}
 
@@ -82,20 +83,22 @@ class RouteFactory {
 		return $route === self::ROOT || preg_match('&^(/[a-zA-Z0-9]+)+$&', $route);
 	}
 
-	private function collectRoutes(string $path): void {
+	private function collectClassDefs(string $path): void {
 		// Preload all classes to force parsing
 		$dirIterator = new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS);
 		$iterIterator = new RecursiveIteratorIterator($dirIterator, RecursiveIteratorIterator::SELF_FIRST);
 		foreach ($iterIterator as $file) {
-			if (strtolower($file->getExtension()) === 'php') {
+			if (strtolower($file->getExtension()) === 'php' && !str_contains($file->getPathname(), '/.')) {
 				try {
-					include_once $file->getPathname();
+					require_once $file->getPathname();
 				} catch (\Throwable $ex) {
 					// ignore if an error occurs
 				}
 			}
 		}
+	}
 
+	private function collectRoutes(): void {
 		// Check all classes: if instance of controller, find routes.
 		foreach (get_declared_classes() as $classname) {
 			if (is_subclass_of($classname, BsBaseController::class)) {

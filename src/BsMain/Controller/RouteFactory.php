@@ -155,7 +155,7 @@ class RouteFactory {
 	public static function fromComposer(Event $event): void {
 		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
 
-		$paths = [ $vendorDir ];
+		$paths = [ $vendorDir . '/allardnaber' ];
 		foreach ($event->getComposer()->getPackage()->getAutoload() as $autoloadPaths) {
 			$paths += $autoloadPaths;
 		}

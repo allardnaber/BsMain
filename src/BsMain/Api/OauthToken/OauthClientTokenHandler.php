@@ -77,4 +77,13 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 		$_SESSION[self::TOKEN_NAME] = json_encode($this->getCurrentAccessToken()->jsonSerialize());
 	}
 
+	public static function getTokenFromSession(): ?AccessTokenInterface {
+		if (isset($_SESSION[self::TOKEN_NAME])) {
+			$tokenArr = json_decode($_SESSION[self::TOKEN_NAME], true);
+			return new AccessToken($tokenArr);
+		} else {
+			return null;
+		}
+	}
+
 }

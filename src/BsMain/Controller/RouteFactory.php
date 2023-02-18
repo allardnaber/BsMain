@@ -88,7 +88,11 @@ class RouteFactory {
 		$iterIterator = new RecursiveIteratorIterator($dirIterator, RecursiveIteratorIterator::SELF_FIRST);
 		foreach ($iterIterator as $file) {
 			if (strtolower($file->getExtension()) === 'php') {
-				include_once $file->getPathname();
+				try {
+					include_once $file->getPathname();
+				} catch (\Throwable $ex) {
+					// ignore if an error occurs
+				}
 			}
 		}
 

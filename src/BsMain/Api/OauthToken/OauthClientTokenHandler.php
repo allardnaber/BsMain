@@ -3,6 +3,7 @@
 namespace BsMain\Api\OauthToken;
 
 use League\OAuth2\Client\Token\AccessToken;
+use League\OAuth2\Client\Token\AccessTokenInterface;
 
 class OauthClientTokenHandler extends OauthTokenHandler {
 
@@ -75,6 +76,15 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 
 	private function saveTokenToSession() {
 		$_SESSION[self::TOKEN_NAME] = json_encode($this->getCurrentAccessToken()->jsonSerialize());
+	}
+
+	public static function getTokenFromSession(): ?AccessTokenInterface {
+		if (isset($_SESSION[self::TOKEN_NAME])) {
+			$tokenArr = json_decode($_SESSION[self::TOKEN_NAME], true);
+			return new AccessToken($tokenArr);
+		} else {
+			return null;
+		}
 	}
 
 }

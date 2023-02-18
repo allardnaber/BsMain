@@ -35,8 +35,9 @@ class RouteFactory {
 	public function __construct(array $paths) {
 
 		foreach ($paths as $path) {
-			$this->collectRoutes($path);
+			$this->collectClassDefs($path);
 		}
+		$this->collectRoutes();
 		$this->finishCollectingRoutes();
 	}
 
@@ -82,16 +83,22 @@ class RouteFactory {
 		return $route === self::ROOT || preg_match('&^(/[a-zA-Z0-9]+)+$&', $route);
 	}
 
-	private function collectRoutes(string $path): void {
+	private function collectClassDefs(string $path): void {
 		// Preload all classes to force parsing
 		$dirIterator = new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS);
 		$iterIterator = new RecursiveIteratorIterator($dirIterator, RecursiveIteratorIterator::SELF_FIRST);
 		foreach ($iterIterator as $file) {
-			if (strtolower($file->getExtension()) === 'php') {
-				include_once $file->getPathname();
+			if (strtolower($file->getExtension()) === 'php' && !str_contains($file->getPathname(), '/.')) {
+				try {
+					require_once $file->getPathname();
+				} catch (\Throwable $ex) {
+					// ignore if an error occurs
+				}
 			}
 		}
+	}
 
+	private function collectRoutes(): void {
 		// Check all classes: if instance of controller, find routes.
 		foreach (get_declared_classes() as $classname) {
 			if (is_subclass_of($classname, BsBaseController::class)) {
@@ -146,13 +153,14 @@ class RouteFactory {
 
 
 	public static function fromComposer(Event $event): void {
-		$paths = [];
-		foreach ($event->getComposer()->getPackage()->getAutoload() as $type => $autoloadPaths) {
+		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
+
+		$paths = [ $vendorDir . '/allardnaber' ];
+		foreach ($event->getComposer()->getPackage()->getAutoload() as $autoloadPaths) {
 			$paths += $autoloadPaths;
 		}
 
 		$factory = new self($paths);
-		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
 		$factory->saveForComposer($vendorDir);
 	}
 

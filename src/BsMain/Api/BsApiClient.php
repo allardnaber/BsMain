@@ -4,6 +4,7 @@ namespace BsMain\Api;
 
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
+use BsMain\Data\WhoAmIUser;
 use GuzzleHttp\Client;
 use League\OAuth2\Client\Provider\GenericProvider;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
@@ -25,8 +26,8 @@ class BsApiClient {
 		$this->createTokenHandler($useServiceAccount);
 	}
 	
-	public function whoami(): ResourceOwnerInterface {
-		return $this->provider->getResourceOwner($this->tokenHandler->getAccessToken());
+	public function whoami(): WhoAmIUser {
+		return new WhoAmIUser($this->provider->getResourceOwner($this->tokenHandler->getAccessToken())->toArray());
 	}
 	
 	private function createTokenHandler($useServiceAccount): void {

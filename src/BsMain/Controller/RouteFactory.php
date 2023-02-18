@@ -146,13 +146,14 @@ class RouteFactory {
 
 
 	public static function fromComposer(Event $event): void {
-		$paths = [];
-		foreach ($event->getComposer()->getPackage()->getAutoload() as $type => $autoloadPaths) {
+		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
+
+		$paths = [ $vendorDir ];
+		foreach ($event->getComposer()->getPackage()->getAutoload() as $autoloadPaths) {
 			$paths += $autoloadPaths;
 		}
 
 		$factory = new self($paths);
-		$vendorDir = $event->getComposer()->getConfig()->get('vendor-dir');
 		$factory->saveForComposer($vendorDir);
 	}
 

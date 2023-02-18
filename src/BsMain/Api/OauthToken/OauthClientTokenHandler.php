@@ -3,6 +3,7 @@
 namespace BsMain\Api\OauthToken;
 
 use League\OAuth2\Client\Token\AccessToken;
+use League\OAuth2\Client\Token\AccessTokenInterface;
 
 class OauthClientTokenHandler extends OauthTokenHandler {
 

@@ -66,7 +66,7 @@ abstract class BsResourceBaseApi {
 		while ($response['PagingInfo']['HasMoreItems']) {
 			$bookmark = $response['PagingInfo']['Bookmark'];
 			$pagedUrl = sprintf('%s%sbookmark=%s', $url, $bookmarkSep, $bookmark);
-			$response = json_decode($this->request($pagedUrl, $dataType), true);
+			$response = json_decode($this->requestRaw($pagedUrl, $dataType), true);
 			$result = array_merge($result, $response['Items']);
 		}
 		return $result;
@@ -86,7 +86,7 @@ abstract class BsResourceBaseApi {
 		// different than brightspace|api, because url already includes "/d2l/api"
 		$urlPrefix = $this->client->getConfig()['brightspace']['url'];
 		while ($response['Next'] !== null) {
-			$response = json_decode($this->request($urlPrefix . $response['Next'], $dataType), true);
+			$response = json_decode($this->requestRaw($urlPrefix . $response['Next'], $dataType), true);
 			$result = array_merge($result, $response['Objects']);
 		}
 		return $result;

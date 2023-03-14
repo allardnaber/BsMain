@@ -11,10 +11,14 @@ class BsBaseController {
 	private OutputTemplate $output;
 	private array $config;
 
-	public function __construct(OutputTemplate $output, array $config) {
+	public function __construct(OutputTemplate $output, array $config, bool $skipConfigResolution = false) {
 		$this->output = $output;
-		$configObj = new Configuration($config);
-		$this->config = $configObj->getResolvedConfig();
+		if ($skipConfigResolution) {
+			$this->config = $config;
+		} else {
+			$configObj = new Configuration($config);
+			$this->config = $configObj->getResolvedConfig();
+		}
 	}
 
 	/**

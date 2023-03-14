@@ -18,7 +18,7 @@ class App {
 			$controller = new $controllerName($output, $config);
 			call_user_func([$controller, $method]);
 		} catch (\Throwable $ex) {
-			$errorController = new BsBaseController($output, $config);
+			$errorController = new BsBaseController($output, $config, true);
 			$errorHelper = new ErrorHelper($ex, $errorController);
 			$errorHelper->display();
 		}

@@ -13,12 +13,12 @@ class App {
 		session_start();
 		$output = new OutputTemplate($config['smarty']);
 		try {
-			set_error_handler([ErrorHelper::class, ErrorHelper::HANDLER_NAME]);
+			set_error_handler(ErrorHelper::ERROR_HANDLER);
 			list ($controllerName, $method) = self::getControllerMethod();
 			$controller = new $controllerName($output, $config);
 			call_user_func([$controller, $method]);
 		} catch (\Throwable $ex) {
-			$errorController = new BsBaseController($output, $config);
+			$errorController = new BsBaseController($output, $config, true);
 			$errorHelper = new ErrorHelper($ex, $errorController);
 			$errorHelper->display();
 		}

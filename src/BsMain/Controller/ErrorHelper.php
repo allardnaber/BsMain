@@ -7,7 +7,7 @@ class ErrorHelper {
 	private $exception;
 	private $controller;
 
-	public const HANDLER_NAME = 'errorHandler';
+	public const ERROR_HANDLER = [ self::class, 'errorHandler' ];
 	
 	public function __construct(\Throwable $ex, BsBaseController $controller) {
 		$this->exception = $ex;

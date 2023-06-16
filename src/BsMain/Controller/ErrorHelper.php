@@ -24,10 +24,16 @@ class ErrorHelper {
 	}
 
 	public static function errorHandler($severity, $message, $file, $line): bool {
-		if ($severity & ~(E_DEPRECATED | E_STRICT | E_NOTICE)) {
-			throw new \ErrorException($message, 0, $severity, $file, $line);
+		// Check if error was suppressed (https://www.php.net/manual/en/language.operators.errorcontrol.php)
+		// or not relevant to process further.
+		$reportLevel = error_reporting();
+		if (
+			$reportLevel === 0 ||
+			$reportLevel === E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR | E_PARSE
+		) {
+			return true; // do not show suppressed errors
 		}
-		return true; // skip further error handling
+		throw new \ErrorException($message, 0, $severity, $file, $line);
 	}
 	
 	private function getErrorInfo() {

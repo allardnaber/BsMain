@@ -47,15 +47,16 @@ class OauthServiceTokenHandler extends OauthTokenHandler {
 				'refresh_token' => $this->getCurrentAccessToken()->getRefreshToken()
 			]);
 
-			// Empty file and write new token
-			ftruncate($filePointer, 0);
-			rewind($filePointer);
-			if (!fwrite($filePointer, json_encode($token->jsonSerialize()))) {
-				throw new BsAppRuntimeException('Error writing new Brightspace access token: ' . error_get_last()['message']);
-			}
+			$this->writeTokenToFileReference($filePointer, $token);
 		}
 
 		$this->setAccessToken($token);
+		$this->closeTokenFile($filePointer);
+	}
+
+	public function saveAccessToken(AccessTokenInterface $token): void {
+		$filePointer = $this->openTokenFile(self::WRITE_MODE);
+		$this->writeTokenToFileReference($filePointer, $token);
 		$this->closeTokenFile($filePointer);
 	}
 
@@ -96,6 +97,15 @@ class OauthServiceTokenHandler extends OauthTokenHandler {
 		}
 
 		return new AccessToken(json_decode($tokenJson, true));
+	}
+
+	private function writeTokenToFileReference(mixed $filePointer, AccessTokenInterface $token): void {
+		// Empty file and write new token
+		ftruncate($filePointer, 0);
+		rewind($filePointer);
+		if (!fwrite($filePointer, json_encode($token->jsonSerialize()))) {
+			throw new BsAppRuntimeException('Error writing new Brightspace access token: ' . error_get_last()['message']);
+		}
 	}
 
 }

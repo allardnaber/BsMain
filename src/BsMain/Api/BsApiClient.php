@@ -4,6 +4,7 @@ namespace BsMain\Api;
 
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
+use BsMain\Api\OauthToken\OauthTokenHandler;
 use BsMain\Data\WhoAmIUser;
 use GuzzleHttp\Client;
 use League\OAuth2\Client\Provider\GenericProvider;
@@ -57,10 +58,7 @@ class BsApiClient {
 		return $this->http;
 	}
 
-	/**
-	 * @return mixed
-	 */
-	public function getTokenHandler() {
+	public function getTokenHandler(): OauthTokenHandler {
 		return $this->tokenHandler;
 	}
 

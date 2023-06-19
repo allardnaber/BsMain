@@ -2,6 +2,8 @@
 
 namespace BsMain\Api\OauthToken;
 
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+
 abstract class OauthTokenHandler {
 	
 	private $provider, $config;
@@ -37,7 +39,10 @@ abstract class OauthTokenHandler {
 	}
 	
 	public abstract function retrieveAccessToken();
-	
+
+	/**
+	 * @throws IdentityProviderException
+	 */
 	public abstract function refreshAccessToken();
 
 }

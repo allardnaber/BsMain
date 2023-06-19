@@ -2,6 +2,7 @@
 
 namespace BsMain\Api\OauthToken;
 
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 
@@ -29,8 +30,11 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 			$this->getInitialTokenFromUser();
 		}
 	}
-	
-	
+
+
+	/**
+	 * @throws IdentityProviderException
+	 */
 	public function refreshAccessToken() {
 		$this->setAccessToken($this->getProvider()->getAccessToken(
 				'refresh_token',

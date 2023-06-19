@@ -6,7 +6,9 @@ use BsMain\Api\BsApiClient;
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
 use BsMain\Controller\Attributes\Route;
+use BsMain\Exception\BsAppRuntimeException;
 use BsMain\Template\OutputTemplate;
+use RuntimeException;
 
 class AccountController extends BsBaseController {
 
@@ -36,13 +38,22 @@ class AccountController extends BsBaseController {
 	#[Route('/account/register')]
 	public function registerAccessToken() {
 		if (!$this->isServiceAccount) {
-			throw new \RuntimeException(sprintf(
+			throw new RuntimeException(sprintf(
 				'Registering a service access token can only be done from the %s account.',
 				$this->getConfig()['brightspace']['serviceAccount'])
 			);
 		}
 
-		OauthServiceTokenHandler::saveAccessToken(OauthClientTokenHandler::getTokenFromSession(), $this->getConfig());
+		$serviceClient = new BsApiClient($this->getConfig(), true);
+		$serviceTokenHandler = $serviceClient->getTokenHandler();
+		if (!$serviceTokenHandler instanceof OauthServiceTokenHandler) {
+			throw new BsAppRuntimeException(sprintf(
+				'Service token handler is of wrong type: expected %s, but it is of type %s.',
+				OauthServiceTokenHandler::class, gettype($serviceTokenHandler)
+			));
+		}
+
+		$serviceTokenHandler->saveAccessToken(OauthClientTokenHandler::getTokenFromSession());
 
 		$this->assign('tokenRegistered', true);
 		$this->display('account.tpl');

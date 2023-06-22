@@ -2,6 +2,10 @@
 
 namespace BsMain\Controller;
 
+use BsMain\Exception\BsAppApiException;
+use BsMain\Exception\BsAppRuntimeException;
+use GuzzleHttp\Exception\RequestException;
+
 class ErrorHelper {
 	
 	private $exception;
@@ -36,8 +40,8 @@ class ErrorHelper {
 		throw new \ErrorException($message, 0, $severity, $file, $line);
 	}
 	
-	private function getErrorInfo() {
-		if ($this->exception instanceof \GuzzleHttp\Exception\RequestException) {
+	private function getErrorInfo(): array {
+		if ($this->exception instanceof RequestException) {
 			return [
 				$this->controller->getOutput()->getConfigVars('error_api_label'),
 				$this->exception->getResponse()->getBody()->getContents(),
@@ -45,15 +49,15 @@ class ErrorHelper {
 			];
 		}
 		
-		if ($this->exception instanceof \BsMain\Exception\BsAppApiException) {
+		if ($this->exception instanceof BsAppApiException) {
 			return [
-				$this->controller->getOutput()->getConfigVars('error_api_label'),
+				sprintf($this->controller->getOutput()->getConfigVars('error_api_label'), $this->exception->getAppName()),
 				$this->translateChunckedError($this->exception),
 				$this->exception->getStatusCode()
 			];
 		}
 		
-		if ($this->exception instanceof \BsMain\Exception\BsAppRuntimeException) {
+		if ($this->exception instanceof BsAppRuntimeException) {
 			return [
 				$this->controller->getOutput()->getConfigVars('error_app_label'),
 				$this->translateErrorMsg($this->exception, $this->exception->getParams())
@@ -75,7 +79,7 @@ class ErrorHelper {
 
 	private function translateErrorMsg(\Throwable $ex, $params = null) {
 		$msg = $ex->getMessage();
-		if (substr($msg, 0, 2) === '{#' && substr($msg, -2) === '#}') {
+		if (str_starts_with($msg, '{#') && str_ends_with($msg, '#}')) {
 			$key = substr($msg, 2, strlen($msg) - 4);
 			$msg = $this->controller->getOutput()->getConfigVars($key) ?? $msg;
 		}
@@ -101,7 +105,7 @@ class ErrorHelper {
 		}
 	}
 	
-	private function translateChunckedError(\BsMain\Exception\BsAppApiException $ex) {
+	private function translateChunckedError(BsAppApiException $ex) {
 		$parts = explode('_', strtolower($ex->getMessage()));
 		for ($i = count($parts); $i >= 2; $i--) {
 			$key = implode('_', array_slice($parts, 0, $i));

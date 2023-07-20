@@ -49,22 +49,32 @@ class Configuration {
 	}
 
 	public function getResolvedConfig(): array {
-		$fromCache = $this->getFromCache();
-		if ($fromCache !== null) {
+		if (($fromCache = $this->getFromCache(60 * 60 * 24)) !== null) {
 			return $fromCache;
 		}
 
-		// Initialize vault if required
-		if (count(array_intersect(
-				['vaultUri', 'vaultToken', 'vaultPath'],
-				array_keys($this->config['config']))) === 3) {
-			$this->initVault();
+		try {
+			// Initialize vault if required
+			if (count(array_intersect(
+					['vaultUri', 'vaultToken', 'vaultPath'],
+					array_keys($this->config['config']))) === 3) {
+				$this->initVault();
+			}
+			$this->resolve($this->config);
+			$this->saveToCache();
+			return $this->config;
+		} catch (\Exception $e) {
+			// Fall back to old cache if it's impossible to renew.
+			$stderr = fopen('php://stderr', 'w');
+			fprintf($stderr, "Unable to reload config: %s: %s\n", $e->getMessage(), $e->getTraceAsString());
+			fclose($stderr);
+			$oldCache = $this->getFromCache(-1);
+			if ($oldCache !== null) {
+				return $oldCache;
+			} else{
+				throw $e;
+			}
 		}
-		$this->resolve($this->config);
-
-		$this->saveToCache();
-
-		return $this->config;
 	}
 
 	private function resolve(&$part): void {
@@ -78,9 +88,9 @@ class Configuration {
 		// else string: keep as is.
 	}
 
-	private function getFromCache(): ?array {
+	private function getFromCache($maxAge): ?array {
 		$fname = $this->config['config']['cachePath'];
-		if (file_exists($fname) && time() - filemtime($fname) < 60*60*24) {
+		if (file_exists($fname) && ($maxAge === -1 || time() - filemtime($fname) < $maxAge)) {
 			return unserialize(file_get_contents($fname));
 		}
 		return null;

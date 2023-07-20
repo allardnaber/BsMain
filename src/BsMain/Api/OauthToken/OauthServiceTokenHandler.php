@@ -25,20 +25,20 @@ class OauthServiceTokenHandler extends OauthTokenHandler {
 	}
 
 	public function retrieveAccessToken(): void {
-		$filePointer = $this->openTokenFile(self::READ_MODE);
+		$filePointer = self::openTokenFile(self::READ_MODE, $this->tokenFile);
 
-		$token = $this->getTokenFromFileReference($filePointer);
+		$token = self::getTokenFromFileReference($filePointer);
 		$this->setAccessToken($token);
 
-		$this->closeTokenFile($filePointer);
+		self::closeTokenFile($filePointer);
 	}
 
 	/**
 	 * @throws IdentityProviderException
 	 */
 	public function refreshAccessToken(): void {
-		$filePointer = $this->openTokenFile(self::WRITE_MODE);
-		$token = $this->getTokenFromFileReference($filePointer);
+		$filePointer = self::openTokenFile(self::WRITE_MODE, $this->tokenFile);
+		$token = self::getTokenFromFileReference($filePointer);
 
 		// Check again to see if the token has expired, it might have been refreshed already.
 		// In that case $token contains the newest token, we can proceed with that.
@@ -47,17 +47,18 @@ class OauthServiceTokenHandler extends OauthTokenHandler {
 				'refresh_token' => $this->getCurrentAccessToken()->getRefreshToken()
 			]);
 
-			$this->writeTokenToFileReference($filePointer, $token);
+			self::writeTokenToFileReference($filePointer, $token);
 		}
 
 		$this->setAccessToken($token);
-		$this->closeTokenFile($filePointer);
+		self::closeTokenFile($filePointer);
 	}
 
-	public function saveAccessToken(AccessTokenInterface $token): void {
-		$filePointer = $this->openTokenFile(self::WRITE_MODE);
-		$this->writeTokenToFileReference($filePointer, $token);
-		$this->closeTokenFile($filePointer);
+	public static function saveAccessToken(array $config, AccessTokenInterface $token): void {
+		$tokenFile = $config['oauth2']['serviceTokenFile'];
+		$filePointer = self::openTokenFile(self::WRITE_MODE, $tokenFile);
+		self::writeTokenToFileReference($filePointer, $token);
+		self::closeTokenFile($filePointer);
 	}
 
 	/**
@@ -68,12 +69,20 @@ class OauthServiceTokenHandler extends OauthTokenHandler {
 	 * @param int $mode Read or Write mode, {@see self::READ_MODE} and {@see self::WRITE_MODE}.
 	 * @return resource The file pointer
 	 */
-	private function openTokenFile(int $mode): mixed {
-		if (!file_exists($this->tokenFile) || !is_readable($this->tokenFile)) {
-			throw new BsAppRuntimeException('Brightspace service account has not yet been configured.');
+	private static function openTokenFile(int $mode, $tokenFile): mixed {
+		if ($mode === self::READ_MODE && !is_readable($tokenFile)) {
+			throw new BsAppRuntimeException('Brightspace service account has not yet been configured or cannot be read.');
 		}
 
-		$filePointer = fopen($this->tokenFile, $mode === self::READ_MODE ? 'r' : 'r+');
+		if ($mode === self::WRITE_MODE && (
+				(file_exists($tokenFile) && !is_writable($tokenFile)) ||
+				(!file_exists($tokenFile) && !is_writable(pathinfo($tokenFile, PATHINFO_DIRNAME)))
+			)
+		) {
+			throw new BsAppRuntimeException('Unable to write to token file: Brightspace service account cannot be stored.');
+		}
+
+		$filePointer = fopen($tokenFile, $mode === self::READ_MODE ? 'r' : 'c+');
 		if ($filePointer === false) {
 			throw new BsAppRuntimeException('Unable to open file with Brightspace token: ' . error_get_last()['message']);
 		}
@@ -85,12 +94,12 @@ class OauthServiceTokenHandler extends OauthTokenHandler {
 		return $filePointer;
 	}
 
-	private function closeTokenFile(mixed $filePointer): void {
+	private static function closeTokenFile(mixed $filePointer): void {
 		flock($filePointer, LOCK_UN);
 		fclose($filePointer);
 	}
 
-	private function getTokenFromFileReference(mixed $filePointer): AccessTokenInterface {
+	private static function getTokenFromFileReference(mixed $filePointer): AccessTokenInterface {
 		$tokenJson = fgets($filePointer);
 		if ($tokenJson === false) {
 			throw new BsAppRuntimeException('Error getting Brightspace access token: ' . error_get_last()['message']);
@@ -99,7 +108,7 @@ class OauthServiceTokenHandler extends OauthTokenHandler {
 		return new AccessToken(json_decode($tokenJson, true));
 	}
 
-	private function writeTokenToFileReference(mixed $filePointer, AccessTokenInterface $token): void {
+	private static function writeTokenToFileReference(mixed $filePointer, AccessTokenInterface $token): void {
 		// Empty file and write new token
 		ftruncate($filePointer, 0);
 		rewind($filePointer);

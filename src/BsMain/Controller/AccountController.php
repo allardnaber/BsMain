@@ -44,16 +44,7 @@ class AccountController extends BsBaseController {
 			);
 		}
 
-		$serviceClient = new BsApiClient($this->getConfig(), true);
-		$serviceTokenHandler = $serviceClient->getTokenHandler();
-		if (!$serviceTokenHandler instanceof OauthServiceTokenHandler) {
-			throw new BsAppRuntimeException(sprintf(
-				'Service token handler is of wrong type: expected %s, but it is of type %s.',
-				OauthServiceTokenHandler::class, gettype($serviceTokenHandler)
-			));
-		}
-
-		$serviceTokenHandler->saveAccessToken(OauthClientTokenHandler::getTokenFromSession());
+		OauthServiceTokenHandler::saveAccessToken($this->getConfig(), OauthClientTokenHandler::getTokenFromSession());
 
 		$this->assign('tokenRegistered', true);
 		$this->display('account.tpl');

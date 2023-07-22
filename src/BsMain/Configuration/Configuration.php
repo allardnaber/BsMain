@@ -9,7 +9,6 @@ use Vault\Exceptions\RuntimeException;
 
 class Configuration {
 
-	private array $configOrig;
 	private ?Vault $vault = null;
 
 	private array $config;
@@ -17,12 +16,14 @@ class Configuration {
 	private const CACHE_FALLBACK = -1;
 
 	public function __construct(array $config) {
-		$this->configOrig = $config;
+		$this->config = $config;
 		try {
-			$this->config = $this->getResolvedConfig();
+			$this->resolveConfig();
 		} catch (Throwable $e) {
 			// @todo LOG
-			$this->config = $this->configOrig;
+			$stderr = fopen('php://stderr', 'w');
+			fprintf($stderr, "Unable to resolve config: %s: %s\n", $e->getMessage(), $e->getTraceAsString());
+			fclose($stderr);
 		}
 	}
 
@@ -69,21 +70,21 @@ class Configuration {
 	 * @throws InvalidArgumentException
 	 * @throws RuntimeException
 	 */
-	public function getResolvedConfig(): array {
+	private function resolveConfig(): void {
 		if (($fromCache = $this->getFromCache(60 * 60 * 24)) !== null) {
-			return $fromCache;
+			$this->config = $fromCache;
+			//return $fromCache;
 		}
 
 		try {
 			// Initialize vault if required
 			if (count(array_intersect(
 					['vaultUri', 'vaultToken', 'vaultPath'],
-					array_keys($this->configOrig['config']))) === 3) {
+					array_keys($this->config['config']))) === 3) {
 				$this->initVault();
 			}
-			$this->resolve($this->configOrig);
+			$this->resolve($this->config);
 			$this->saveToCache();
-			return $this->configOrig;
 		} catch (Throwable $e) {
 			// Fall back to old cache if it's impossible to renew.
 			$stderr = fopen('php://stderr', 'w');
@@ -91,7 +92,7 @@ class Configuration {
 			fclose($stderr);
 			$oldCache = $this->getFromCache(self::CACHE_FALLBACK);
 			if ($oldCache !== null) {
-				return $oldCache;
+				$this->config = $oldCache;
 			} else{
 				throw $e;
 			}

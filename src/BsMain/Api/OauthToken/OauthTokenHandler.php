@@ -2,6 +2,7 @@
 
 namespace BsMain\Api\OauthToken;
 
+use BsMain\Configuration\Configuration;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 
 abstract class OauthTokenHandler {
@@ -9,7 +10,7 @@ abstract class OauthTokenHandler {
 	private $provider, $config;
 	private $accessToken;
 	
-	public function __construct($provider, $config) {
+	public function __construct($provider, Configuration $config) {
 		$this->provider = $provider;
 		$this->config = $config;
 		$this->retrieveAccessToken();
@@ -34,7 +35,7 @@ abstract class OauthTokenHandler {
 		return $this->provider;
 	}
 	
-	protected function getConfig() {
+	protected function getFullConfig(): Configuration {
 		return $this->config;
 	}
 	

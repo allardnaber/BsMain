@@ -5,25 +5,26 @@ namespace BsMain\Controller;
 use BsMain\Api\BsApiClient;
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
+use BsMain\Configuration\Configuration;
 use BsMain\Controller\Attributes\Route;
-use BsMain\Exception\BsAppRuntimeException;
+use BsMain\Data\WhoAmIUser;
 use BsMain\Template\OutputTemplate;
 use RuntimeException;
 
 class AccountController extends BsBaseController {
 
-	private $client;
-	private $isServiceAccount;
-	private $whoami;
+	private BsApiClient $client;
+	private bool $isServiceAccount;
+	private WhoAmIUser $whoami;
 
-	public function __construct(OutputTemplate $output, $config) {
+	public function __construct(OutputTemplate $output, Configuration $config) {
 		parent::__construct($output, $config);
-		$this->client = new BsApiClient($this->getConfig());
+		$this->client = new BsApiClient($this->getFullConfig());
 
 		$this->whoami = $this->client->whoami();
 
-		$this->isServiceAccount = isset($this->getConfig()['brightspace']['serviceAccount']) &&
-			strtolower($this->whoami->UniqueName) === strtolower($this->getConfig()['brightspace']['serviceAccount']);
+		$this->isServiceAccount = $this->getConfigOptional('brightspace', 'serviceAccount') != null &&
+			strtolower($this->whoami->UniqueName) === strtolower($this->getConfig('brightspace', 'serviceAccount'));
 
 		$this->assign('whoami', $this->whoami);
 		$this->assign('token',  json_encode(OauthClientTokenHandler::getTokenFromSession()->jsonSerialize()));
@@ -31,29 +32,20 @@ class AccountController extends BsBaseController {
 	}
 
 	#[Route('/account')]
-	public function showAccount() {
+	public function showAccount(): void {
 		$this->display('account.tpl');
 	}
 
 	#[Route('/account/register')]
-	public function registerAccessToken() {
+	public function registerAccessToken(): void {
 		if (!$this->isServiceAccount) {
 			throw new RuntimeException(sprintf(
 				'Registering a service access token can only be done from the %s account.',
-				$this->getConfig()['brightspace']['serviceAccount'])
+				$this->getConfig('brightspace', 'serviceAccount'))
 			);
 		}
 
-		$serviceClient = new BsApiClient($this->getConfig(), true);
-		$serviceTokenHandler = $serviceClient->getTokenHandler();
-		if (!$serviceTokenHandler instanceof OauthServiceTokenHandler) {
-			throw new BsAppRuntimeException(sprintf(
-				'Service token handler is of wrong type: expected %s, but it is of type %s.',
-				OauthServiceTokenHandler::class, gettype($serviceTokenHandler)
-			));
-		}
-
-		$serviceTokenHandler->saveAccessToken(OauthClientTokenHandler::getTokenFromSession());
+		OauthServiceTokenHandler::saveAccessToken($this->getFullConfig(), OauthClientTokenHandler::getTokenFromSession());
 
 		$this->assign('tokenRegistered', true);
 		$this->display('account.tpl');

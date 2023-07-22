@@ -5,6 +5,7 @@ namespace BsMain\Api;
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
 use BsMain\Api\OauthToken\OauthTokenHandler;
+use BsMain\Configuration\Configuration;
 use BsMain\Data\WhoAmIUser;
 use GuzzleHttp\Client;
 use League\OAuth2\Client\Provider\GenericProvider;
@@ -14,15 +15,15 @@ use League\OAuth2\Client\Provider\ResourceOwnerInterface;
  * Base class with utilities to interact with the Brightspace API.
  */
 class BsApiClient {
-	private array $config;
+	private Configuration $config;
 	private $provider;
 	private $http;
 	private $tokenHandler;
 	private array $resourceApis = [];
 
-	public function __construct($config, $useServiceAccount = false) {
+	public function __construct(Configuration $config, $useServiceAccount = false) {
 		$this->config = $config;
-		$this->provider = new GenericProvider($config['oauth2']);
+		$this->provider = new GenericProvider($config->get('oauth2'));
 		$this->http = new Client();
 		$this->createTokenHandler($useServiceAccount);
 	}
@@ -40,8 +41,16 @@ class BsApiClient {
 		}
 	}
 
-	public function getConfig(): array {
+	public function getFullConfig(): Configuration {
 		return $this->config;
+	}
+
+	public function getConfig(string ...$path): string|array {
+		return $this->config->get(...$path);
+	}
+
+	public function getConfigOptional(string ... $path): string|array|null {
+		return $this->config->getOptional(...$path);
 	}
 
 	/**

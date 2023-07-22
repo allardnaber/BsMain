@@ -2,6 +2,7 @@
 
 namespace BsMain\Api\OauthToken;
 
+use BsMain\Configuration\Configuration;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Token\AccessTokenInterface;
@@ -19,8 +20,8 @@ class OauthServiceTokenHandler extends OauthTokenHandler {
 
 	private string $tokenFile;
 
-	public function __construct($provider, $config) {
-		$this->tokenFile = $config['oauth2']['serviceTokenFile'];
+	public function __construct($provider, Configuration $config) {
+		$this->tokenFile = $config->get('oauth2', 'serviceTokenFile');
 		parent::__construct($provider, $config);
 	}
 
@@ -54,8 +55,8 @@ class OauthServiceTokenHandler extends OauthTokenHandler {
 		self::closeTokenFile($filePointer);
 	}
 
-	public static function saveAccessToken(array $config, AccessTokenInterface $token): void {
-		$tokenFile = $config['oauth2']['serviceTokenFile'];
+	public static function saveAccessToken(Configuration $config, AccessTokenInterface $token): void {
+		$tokenFile = $config->get('oauth2', 'serviceTokenFile');
 		$filePointer = self::openTokenFile(self::WRITE_MODE, $tokenFile);
 		self::writeTokenToFileReference($filePointer, $token);
 		self::closeTokenFile($filePointer);

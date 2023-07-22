@@ -28,7 +28,7 @@ abstract class BsResourceBaseApi {
 	 */
 	protected function url(string $url, string ...$values): string {
 		$safeValues = array_map('urlencode', $values);
-		return vsprintf($this->client->getConfig()['brightspace']['api'] . $url, $safeValues);
+		return vsprintf($this->client->getConfig('brightspace', 'api') . $url, $safeValues);
 	}
 
 	/**
@@ -84,7 +84,7 @@ abstract class BsResourceBaseApi {
 	private function getObjectListPage(string $url, string $dataType, mixed $response): array {
 		$result = $response['Objects'];
 		// different than brightspace|api, because url already includes "/d2l/api"
-		$urlPrefix = $this->client->getConfig()['brightspace']['url'];
+		$urlPrefix = $this->client->getConfig('brightspace', 'url');
 		while ($response['Next'] !== null) {
 			$response = json_decode($this->requestRaw($urlPrefix . $response['Next'], $dataType), true);
 			$result = array_merge($result, $response['Objects']);

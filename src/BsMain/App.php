@@ -2,6 +2,7 @@
 
 namespace BsMain;
 
+use BsMain\Configuration\Configuration;
 use BsMain\Controller\BsBaseController;
 use BsMain\Controller\ErrorHelper;
 use BsMain\Controller\RouteFactory;
@@ -11,14 +12,15 @@ class App {
 
 	public static function start(array $config): void {
 		session_start();
+		set_error_handler(ErrorHelper::ERROR_HANDLER);
 		$output = new OutputTemplate($config['smarty']);
+		$configObj = new Configuration($config);
 		try {
-			set_error_handler(ErrorHelper::ERROR_HANDLER);
 			list ($controllerName, $method) = self::getControllerMethod();
-			$controller = new $controllerName($output, $config);
+			$controller = new $controllerName($output, $configObj);
 			call_user_func([$controller, $method]);
 		} catch (\Throwable $ex) {
-			$errorController = new BsBaseController($output, $config, true);
+			$errorController = new BsBaseController($output, $configObj);
 			$errorHelper = new ErrorHelper($ex, $errorController);
 			$errorHelper->display();
 		}

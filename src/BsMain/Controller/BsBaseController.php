@@ -9,16 +9,11 @@ use SmartyException;
 class BsBaseController {
 	
 	private OutputTemplate $output;
-	private array $config;
+	private Configuration $config;
 
-	public function __construct(OutputTemplate $output, array $config, bool $skipConfigResolution = false) {
+	public function __construct(OutputTemplate $output, Configuration $config) {
 		$this->output = $output;
-		if ($skipConfigResolution) {
-			$this->config = $config;
-		} else {
-			$configObj = new Configuration($config);
-			$this->config = $configObj->getResolvedConfig();
-		}
+		$this->config = $config;
 	}
 
 	/**
@@ -36,8 +31,16 @@ class BsBaseController {
 		return $this->output;
 	}
 
-	public function getConfig(): array {
+	public function getFullConfig(): Configuration {
 		return $this->config;
+	}
+
+	public function getConfig(string ...$path): string|array {
+		return $this->config->get(...$path);
+	}
+
+	public function getConfigOptional(string ... $path): string|array|null {
+		return $this->config->getOptional(...$path);
 	}
 	
 

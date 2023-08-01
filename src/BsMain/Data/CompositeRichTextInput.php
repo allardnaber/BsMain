@@ -11,15 +11,27 @@ namespace BsMain\Data;
 }
  */
 class CompositeRichTextInput extends GenericObject {
-	
+
 	protected function getAvailableFields(): array {
 		return [ 'Type', 'Content' ];
 	}
 
 	public static function getBlankInput() {
+		return self::getObject('Text', '');
+	}
+
+	public static function html(?string $html) {
+		return self::getObject('Html', $html);
+	}
+
+	public static function text(?string $text) {
+		return self::getObject('Text', $text);
+	}
+
+	private static function getObject(string $type, ?string $content) {
 		$result = new self();
-		$result->Type = 'Text';
-		$result->Content = '';
+		$result->Type = $type;
+		$result->Content = $content;
 		return $result;
 	}
 }

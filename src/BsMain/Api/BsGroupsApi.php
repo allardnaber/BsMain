@@ -7,6 +7,7 @@ use BsMain\Data\GroupCategoryDataFetch;
 use BsMain\Data\GroupCategoryJobStatus;
 use BsMain\Data\GroupDataCreate;
 use BsMain\Data\GroupDataFetch;
+use BsMain\Data\GroupDataUpdate;
 use BsMain\Data\GroupEnrollment;
 use BsMain\Data\GroupsJobData;
 
@@ -46,12 +47,22 @@ class BsGroupsApi extends BsResourceBaseApi {
 			GroupCategoryJobStatus::class, 'group category creation status');
 	}
 
+	public function getGroup(int $courseId, int $categoryId, int $groupId): GroupDataFetch {
+		return $this->request($this->url('/lp/1.31/%d/groupcategories/%d/groups/%d', $courseId, $categoryId, $groupId),
+			GroupDataFetch::class, 'the group');
+	}
+
 	public function createGroup(int $courseId, int $categoryId, GroupDataCreate $data): GroupDataFetch {
 		return $this->request($this->url('/lp/1.31/%d/groupcategories/%d/groups/', $courseId, $categoryId),
 			GroupDataFetch::class, 'the group', 'POST', $data->getJson(true));
 	}
 
-	public function deleteGroup(int $courseId, int $categoryId, int $groupId) {
+	public function updateGroup(int $courseId, int $categoryId, int $groupId, GroupDataUpdate $data): GroupDataFetch {
+		return $this->request($this->url('/lp/1.31/%d/groupcategories/%d/groups/%d', $courseId, $categoryId, $groupId),
+			GroupDataFetch::class, 'the group', 'PUT', $data->getJson(true));
+	}
+
+	public function deleteGroup(int $courseId, int $categoryId, int $groupId): void {
 		$this->request($this->url('/lp/1.31/%d/groupcategories/%d/groups/%d', $courseId, $categoryId, $groupId),
 			null, 'the group', 'DELETE');
 	}

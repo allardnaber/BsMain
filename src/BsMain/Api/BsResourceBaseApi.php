@@ -32,6 +32,23 @@ abstract class BsResourceBaseApi {
 	}
 
 	/**
+	 * Append provided allowed parameters to the url.
+	 * @param string $url Base URL.
+	 * @param array $params Array with key/value pairs corresponding to the parameters to add.
+	 * @param array $allowed Array with the allowed parameters for the specific call.
+	 * @return string The URL with the allowed parameters appended.
+	 */
+	protected function appendQueryParams(string $url, array $params, array $allowed): string {
+		$queryStart = str_contains($url, '?') ? '&' : '?';
+		$accepted = array_intersect_key($params, array_flip($allowed));
+		$paramsUrl = array_map(fn(string $k, mixed $v): string =>
+		sprintf('%s=%s', $k, urlencode($v)),
+			array_keys($accepted), array_values($accepted)
+		);
+		return $url . (count($accepted) === 0 ? '' : $queryStart . join('&', $paramsUrl));
+	}
+
+	/**
 	 * Request full data set for calls that return paged results. This method
 	 * handles both paged results types that Brightspace offers: paged result sets
 	 * and object list pages.
@@ -61,7 +78,7 @@ abstract class BsResourceBaseApi {
 	 * @return array
 	 */
 	private function getPagedResultSet(string $url, string $dataType, mixed $response): array {
-		$bookmarkSep = str_contains($url, '?') ? '?' : '&';
+		$bookmarkSep = str_contains($url, '?') ? '&' : '?';
 		$result = $response['Items'];
 		while ($response['PagingInfo']['HasMoreItems']) {
 			$bookmark = $response['PagingInfo']['Bookmark'];

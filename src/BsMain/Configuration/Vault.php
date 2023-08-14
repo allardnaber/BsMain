@@ -49,6 +49,9 @@ class Vault {
 		if (!isset($this->secrets)) {
 			$response = $this->client->read($this->path);
 			$this->secrets = $response->getData();
+			if (isset($this->secrets['data']) && isset($this->secrets['metadata'])) { // V2 response
+				$this->secrets = $this->secrets['data'];
+			}
 		}
 		if (!isset($this->secrets[$key])) {
 			return new \RuntimeException(sprintf('Secret %s not found in Vault.', $key));

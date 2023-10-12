@@ -60,13 +60,9 @@ abstract class DbObject {
 		}
 	}
 
-	/** @noinspection PhpInconsistentReturnPointsInspection */
+	/** @noinspection PhpUnhandledExceptionInspection */
 	private function getOwnMetadata(): TableMetadata {
-		try {
-			return $this->connection->getTableMetadata($this::class);
-		} catch (InvalidDbObjectException $e) {
-			// impossible, as we exist.
-		}
+		return $this->connection->getTableMetadata($this::class);
 	}
 
 }

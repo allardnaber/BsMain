@@ -42,7 +42,7 @@ abstract class DbObject {
 			$updateFields = [];
 			foreach ($this->fields as $key => $value) {
 				if ($value instanceof DbExpression) {
-					$updateFields[] = $key . '=:(' . $value->get() . ')';
+					$updateFields[] = $key . '=(' . $value->get() . ')';
 					unset ($this->fields[$key]);
 				} else {
 					$updateFields[] = $key . '=:' . $key;

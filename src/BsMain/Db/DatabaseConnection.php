@@ -61,7 +61,7 @@ class DatabaseConnection extends \PDO {
 
 		$stmt->execute();
 		if (($result = $stmt->fetch(\PDO::FETCH_ASSOC)) === false) {
-			throw new NotFoundException('Specified item of type %s does not exist', $classname);
+			throw new NotFoundException(sprintf('Specified item of type %s does not exist', $classname));
 		}
 		return new $classname($this, $result);
 	}

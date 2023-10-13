@@ -70,7 +70,9 @@ class DatabaseConnection extends \PDO {
 				$selectFields[] = $key . '=:' . $key;
 			}
 		}
-
+		if (empty($selectFields)) {
+			$selectFields = [ '1=1' ];
+		}
 		$stmt = $this->prepare(sprintf('select * from %s where %s', $meta->getTableName(), join (' and ', $selectFields)));
 		foreach ($fields as $key => $value) {
 			$stmt->bindValue($key, $value);

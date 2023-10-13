@@ -51,7 +51,13 @@ class DatabaseConnection extends \PDO {
 		$meta = $this->getTableMetadata($classname);
 		$selectFields = [];
 		foreach (array_keys($fields) as $key) {
-			$selectFields[] = $key . '=:' . $key;
+			if ($fields[$key] instanceof DbExpression) {
+				$selectFields[] = $key . '=:(' . $fields[$key]->get() . ')';
+				unset($fields[$key]);
+			} else {
+				$selectFields[] = $key . '=:' . $key;
+			}
+
 		}
 
 		$stmt = $this->prepare(sprintf('select * from %s where %s limit 1', $meta->getTableName(), join (' and ', $selectFields)));

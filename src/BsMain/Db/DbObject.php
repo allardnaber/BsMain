@@ -41,7 +41,12 @@ abstract class DbObject {
 			$meta = $this->getOwnMetadata();
 			$updateFields = [];
 			foreach ($this->fields as $key => $value) {
-				$updateFields[] = $key . '=:' . $key;
+				if ($value instanceof DbExpression) {
+					$updateFields[] = $key . '=:(' . $value->get() . ')';
+					unset ($this->fields[$key]);
+				} else {
+					$updateFields[] = $key . '=:' . $key;
+				}
 			}
 
 			$stmt = $this->connection->prepare(sprintf(

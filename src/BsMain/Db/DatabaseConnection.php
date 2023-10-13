@@ -17,7 +17,8 @@ class DatabaseConnection extends \PDO {
 			$config->get('db', 'dsn'),
 			$config->get('db', 'username'),
 			$config->get('db', 'password'),
-			$config->get('db', 'pdo_options')
+			$config->getOptional('db', 'pdo_options'),
+			$config->getOptional('db', 'initial_queries')
 		);
 	}
 

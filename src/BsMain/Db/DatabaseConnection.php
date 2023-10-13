@@ -48,7 +48,7 @@ class DatabaseConnection extends \PDO {
 	 * @throws InvalidDbObjectException
 	 */
 	public function getByFields(string $classname, array $fields): mixed {
-		$result = $this->getAllBFields($classname, $fields);
+		$result = $this->getAllByFields($classname, $fields);
 		if (count($result) === 0) {
 			throw new NotFoundException(sprintf('Specified item of type %s does not exist', $classname));
 		} else {
@@ -59,7 +59,7 @@ class DatabaseConnection extends \PDO {
 	/**
 	 * @throws InvalidDbObjectException
 	 */
-	public function getAllBFields(string $classname, array $fields = []): array {
+	public function getAllByFields(string $classname, array $fields = []): array {
 		$meta = $this->getTableMetadata($classname);
 		$selectFields = [];
 		foreach (array_keys($fields) as $key) {

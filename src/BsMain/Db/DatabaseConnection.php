@@ -106,17 +106,22 @@ class DatabaseConnection extends \PDO {
 	}
 
 	private function tryVersionUpgrade(): void {
+		$path = $this->config->get('db', 'definition');
+
 		$stmt = $this->prepare('select version from meta limit 1');
-		$stmt->execute();
-		if (($result = $stmt->fetch()) === false) {
-			$version = 0;
-		} else {
-			$version = $result['version'];
+		$version = 0;
+		try {
+			$stmt->execute();
+			if (($result = $stmt->fetch()) !== false) {
+				$version = $result['version'];;
+			}
+		} catch(\Exception $e) {
+			// ignore if table does not exist (yet)
 		}
 
 		if ($version < $this->config->get('db', 'version')) {
-			if (($files = scandir($this->config->get('db', 'definition'))) === false) {
-				throw new RuntimeException(sprintf('Database definiiton files in %s cannot be found.', $this->config->get('db', 'definition')));
+			if (($files = scandir($path)) === false) {
+				throw new RuntimeException(sprintf('Database definition files in %s cannot be found.', $path));
 			}
 			$versions = [];
 			foreach ($files as $file) {
@@ -126,8 +131,24 @@ class DatabaseConnection extends \PDO {
 				$versions[$m[1]] = $file;
 			}
 
-		}
+			$dest = $this->config->get('db', 'version');
+			for ($v = $version + 1; $v <= $dest; $v++) {
+				if (!isset($versions[$v])) {
+					throw new RuntimeException(sprintf('No database definition file for version %d found.', $v));
+				}
 
+				$filename = $path . DIRECTORY_SEPARATOR . $versions[$v];
+				if (!is_readable($filename)) {
+					throw new RuntimeException(sprintf('Database definition file %s does not exist or is not readable.', $filename));
+				}
+				$stmt = $this->prepare(file_get_contents($path . DIRECTORY_SEPARATOR . $versions[$v]));
+				$stmt->execute();
+			}
+
+			$stmt = $this->prepare('update meta set version=:version');
+			$stmt->bindValue('version', $dest, \PDO::PARAM_INT);
+			$stmt->execute();
+		}
 	}
 
 

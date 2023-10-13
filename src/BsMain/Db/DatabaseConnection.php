@@ -4,6 +4,7 @@ namespace BsMain\Db;
 
 use BsMain\Configuration\Configuration;
 use BsMain\Exception\InvalidDbObjectException;
+use BsMain\Exception\NotFoundException;
 
 class DatabaseConnection extends \PDO {
 
@@ -35,13 +36,33 @@ class DatabaseConnection extends \PDO {
 	 * @param mixed $id The id in the type defined in the class.
 	 * @return mixed The resulting object.
 	 * @throws InvalidDbObjectException If the specified classname does not exist.
+	 * @throws NotFoundException
 	 */
 	public function getById(string $classname, mixed $id): mixed {
 		$meta = $this->getTableMetadata($classname);
-		$stmt = $this->prepare(sprintf('select * from %s where %s = :id limit 1', $meta->getTableName(), $meta->getIdColumnName()));
-		$stmt->bindValue('id', $id, $meta->getIdColumnType());
+		return $this->getByFields($classname, [ $meta->getIdColumnName() => $id]);
+	}
+
+	/**
+	 * @throws NotFoundException
+	 * @throws InvalidDbObjectException
+	 */
+	public function getByFields(string $classname, array $fields): mixed {
+		$meta = $this->getTableMetadata($classname);
+		$selectFields = [];
+		foreach (array_keys($fields) as $key) {
+			$selectFields[] = $key . '=:' . $key;
+		}
+
+		$stmt = $this->prepare(sprintf('select * from %s where %s limit 1', $meta->getTableName(), join (' and ', $selectFields)));
+		foreach ($fields as $key => $value) {
+			$stmt->bindValue($key, $value);
+		}
+
 		$stmt->execute();
-		$result = $stmt->fetch(\PDO::FETCH_ASSOC);
+		if (($result = $stmt->fetch(\PDO::FETCH_ASSOC)) === false) {
+			throw new NotFoundException('Specified item of type %s does not exist', $classname);
+		}
 		return new $classname($this, $result);
 	}
 

@@ -26,7 +26,7 @@ abstract class DbObject {
 	}
 
 	public function __set(string $name, mixed $value): void {
-		if (!isset($this->fields[$name]) || $this->fields[$name] !== $value) {
+		if (!isset($this->fields[$name]) || $value instanceof DbExpression || $this->fields[$name] !== $value) {
 			$this->fields[$name] = $value;
 			$this->dirty[] = $name;
 		}

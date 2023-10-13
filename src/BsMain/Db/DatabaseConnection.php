@@ -5,6 +5,7 @@ namespace BsMain\Db;
 use BsMain\Configuration\Configuration;
 use BsMain\Exception\InvalidDbObjectException;
 use BsMain\Exception\NotFoundException;
+use RuntimeException;
 
 class DatabaseConnection extends \PDO {
 
@@ -13,21 +14,22 @@ class DatabaseConnection extends \PDO {
 	 */
 	private array $tableMap = [];
 
+	private Configuration $config;
+
 	public static function get(Configuration $config): self {
-		return new self(
-			$config->get('db', 'dsn'),
-			$config->get('db', 'username'),
-			$config->get('db', 'password'),
-			$config->getOptional('db', 'pdo_options'),
-			$config->getOptional('db', 'initial_queries')
-		);
+		return new self($config);
 	}
 
-	public function __construct(string $dsn, string $username, string $password, ?array $options = null, ?array $initQueries = null) {
-		parent::__construct($dsn, $username, $password, $options);
-		foreach ($initQueries as $query) {
+	public function __construct(Configuration $config) {
+		parent::__construct($config->get('db', 'dsn'),
+			$config->get('db', 'username'),
+			$config->get('db', 'password'),
+			$config->getOptional('db', 'pdo_options'));
+		$this->config = $config;
+		foreach ($config->getOptional('db', 'initial_queries') ?? [] as $query) {
 			$this->exec($query);
 		}
+		$this->tryVersionUpgrade();
 	}
 
 	/**
@@ -101,6 +103,31 @@ class DatabaseConnection extends \PDO {
 			$this->tableMap[$classname] = new TableMetadata($classname);
 		}
 		return $this->tableMap[$classname];
+	}
+
+	private function tryVersionUpgrade(): void {
+		$stmt = $this->prepare('select version from meta limit 1');
+		$stmt->execute();
+		if (($result = $stmt->fetch()) === false) {
+			$version = 0;
+		} else {
+			$version = $result['version'];
+		}
+
+		if ($version < $this->config->get('db', 'version')) {
+			if (($files = scandir($this->config->get('db', 'definition'))) === false) {
+				throw new RuntimeException(sprintf('Database definiiton files in %s cannot be found.', $this->config->get('db', 'definition')));
+			}
+			$versions = [];
+			foreach ($files as $file) {
+				if (!preg_match('/v([0-9]+)[._]/i', $file, $m)) {
+					continue;
+				}
+				$versions[$m[1]] = $file;
+			}
+
+		}
+
 	}
 
 

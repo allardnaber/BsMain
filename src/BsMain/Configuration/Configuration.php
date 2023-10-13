@@ -78,7 +78,7 @@ class Configuration {
 
 		try {
 			// Initialize vault if required
-			if (count(array_intersect(
+			if (isset($this->config['config']) && count(array_intersect(
 					['vaultUri', 'vaultToken', 'vaultPath'],
 					array_keys($this->config['config']))) === 3) {
 				$this->initVault();
@@ -114,6 +114,7 @@ class Configuration {
 	}
 
 	private function getFromCache(int $maxAge): ?array {
+		if (!isset($this->config['config']['cachePath'])) { return null; }
 		$fname = $this->config['config']['cachePath'];
 		if (file_exists($fname) && ($maxAge === self::CACHE_FALLBACK || time() - filemtime($fname) < $maxAge)) {
 			if ($maxAge === self::CACHE_FALLBACK) {
@@ -125,7 +126,9 @@ class Configuration {
 	}
 
 	private function saveToCache(): void {
-		$fname = $this->config['config']['cachePath'];
-		file_put_contents($fname, serialize($this->config));
+		if (isset($this->config['config']['cachePath'])) {
+			$fname = $this->config['config']['cachePath'];
+			file_put_contents($fname, serialize($this->config));
+		}
 	}
 }

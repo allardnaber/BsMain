@@ -48,6 +48,18 @@ class DatabaseConnection extends \PDO {
 	 * @throws InvalidDbObjectException
 	 */
 	public function getByFields(string $classname, array $fields): mixed {
+		$result = $this->getAllBFields($classname, $fields);
+		if (count($result) === 0) {
+			throw new NotFoundException(sprintf('Specified item of type %s does not exist', $classname));
+		} else {
+			return $result[0];
+		}
+	}
+
+	/**
+	 * @throws InvalidDbObjectException
+	 */
+	public function getAllBFields(string $classname, array $fields = []): array {
 		$meta = $this->getTableMetadata($classname);
 		$selectFields = [];
 		foreach (array_keys($fields) as $key) {
@@ -57,19 +69,23 @@ class DatabaseConnection extends \PDO {
 			} else {
 				$selectFields[] = $key . '=:' . $key;
 			}
-
 		}
 
-		$stmt = $this->prepare(sprintf('select * from %s where %s limit 1', $meta->getTableName(), join (' and ', $selectFields)));
+		$stmt = $this->prepare(sprintf('select * from %s where %s', $meta->getTableName(), join (' and ', $selectFields)));
 		foreach ($fields as $key => $value) {
 			$stmt->bindValue($key, $value);
 		}
 
 		$stmt->execute();
-		if (($result = $stmt->fetch(\PDO::FETCH_ASSOC)) === false) {
-			throw new NotFoundException(sprintf('Specified item of type %s does not exist', $classname));
+		if (($dbResult = $stmt->fetchAll(\PDO::FETCH_ASSOC)) === false) {
+			return [];
 		}
-		return new $classname($this, $result);
+		$result = [];
+		foreach ($dbResult as $record) {
+			$result[] = new $classname($this, $record);
+		}
+
+		return $result;
 	}
 
 	/**

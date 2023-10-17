@@ -24,7 +24,7 @@ class Vault {
 	public function __construct(string $uri, string $token, string $path) {
 		$this->path = $path;
 		$factory = new HttpFactory();
-		$this->client = new Client(new Uri($uri), new \GuzzleHttp\Client(), $factory, $factory);
+		$this->client = new VaultDebugClient(new Uri($uri), new \GuzzleHttp\Client(), $factory, $factory);
 		if (!$this->client->setAuthenticationStrategy(new TokenAuthenticationStrategy($token))->authenticate()) {
 			throw new \RuntimeException('Could not access Vault to retrieve required tokens.');
 		}

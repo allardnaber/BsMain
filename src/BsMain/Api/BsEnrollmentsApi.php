@@ -4,6 +4,7 @@ namespace BsMain\Api;
 
 
 use BsMain\Data\ClasslistUser;
+use BsMain\Data\MyOrgUnitInfo;
 use BsMain\Data\UserOrgUnit;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -29,5 +30,9 @@ class BsEnrollmentsApi extends BsResourceBaseApi {
 	public function getClasslistForOrgUnit(int $orgUnit): array {
 		return $this->requestArray($this->url('/le/1.51/%d/classlist/paged/', $orgUnit),
 			ClasslistUser::class, true, 'enrolled users');
+	}
+
+	public function getMyEnrollmentForOrgUnit(int $orgUnit): MyOrgUnitInfo {
+		return $this->request($this->url('/lp/1.43/cenrollments/myenrollments/%d', $orgUnit), MyOrgUnitInfo::class, 'enrollment details');
 	}
 }

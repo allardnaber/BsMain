@@ -33,6 +33,6 @@ class BsEnrollmentsApi extends BsResourceBaseApi {
 	}
 
 	public function getMyEnrollmentForOrgUnit(int $orgUnit): MyOrgUnitInfo {
-		return $this->request($this->url('/lp/1.43/cenrollments/myenrollments/%d', $orgUnit), MyOrgUnitInfo::class, 'enrollment details');
+		return $this->request($this->url('/lp/1.43/enrollments/myenrollments/%d', $orgUnit), MyOrgUnitInfo::class, 'enrollment details');
 	}
 }

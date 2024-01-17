@@ -10,6 +10,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 
 	const TOKEN_NAME = 'oauth2_token';
 	const STATE_NAME = 'oauth2_state';
+	const REDIRECT_URL = 'redirect_url';
 
 	/**
 	 * Handle retrieving an oauth2 token. This method has three paths:
@@ -50,6 +51,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 	private function getInitialTokenFromUser() {
 		$url = $this->getProvider()->getAuthorizationUrl();
 		$_SESSION[self::STATE_NAME] = $this->getProvider()->getState();
+		$_SESSION[self::REDIRECT_URL] = $_SERVER['REQUEST_URI'] ?? '';
 		header('Location: ' . $url);
 		exit();
 	}
@@ -76,6 +78,10 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 				'authorization_code', ['code' => $_GET['code']]
 		));
 		$this->saveTokenToSession();
+		if (!empty($_SESSION[self::REDIRECT_URL] ?? '')) {
+			header('Location: ' . $_SESSION[self::REDIRECT_URL]);
+			exit;
+		}
 	}
 
 	private function saveTokenToSession() {

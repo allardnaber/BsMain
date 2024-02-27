@@ -87,9 +87,7 @@ class Configuration {
 			$this->saveToCache();
 		} catch (Throwable $e) {
 			// Fall back to old cache if it's impossible to renew.
-			$stderr = fopen('php://stderr', 'w');
-			fprintf($stderr, "Unable to reload config: %s: %s\n", $e->getMessage(), $e->getTraceAsString());
-			fclose($stderr);
+			$this->logError(sprintf("Unable to reload config: %s: %s\n", $e->getMessage(), $e->getTraceAsString()));
 			$oldCache = $this->getFromCache(self::CACHE_FALLBACK);
 			if ($oldCache !== null) {
 				$this->config = $oldCache;
@@ -115,11 +113,21 @@ class Configuration {
 
 	private function getFromCache(int $maxAge): ?array {
 		$fname = $this->config['config']['cachePath'];
-		if (file_exists($fname) && ($maxAge === self::CACHE_FALLBACK || time() - filemtime($fname) < $maxAge)) {
+		if (is_readable($fname) && ($maxAge === self::CACHE_FALLBACK || time() - filemtime($fname) < $maxAge)) {
 			if ($maxAge === self::CACHE_FALLBACK) {
 				touch($fname); // try again after the next interval
 			}
-			return unserialize(file_get_contents($fname));
+			$fileContents = file_get_contents($fname);
+			if ($fileContents === false) {
+				$this->logError(sprintf("Unable to read cached config: %s", var_export(error_get_last(), true)));
+				return null;
+			}
+			$cached = unserialize($fileContents);
+			if ($cached === false) {
+				$this->logError(sprintf("Unable to decode cached config: %s", var_export(error_get_last(), true)));
+				return null;
+			}
+			return $cached;
 		}
 		return null;
 	}
@@ -127,5 +135,11 @@ class Configuration {
 	private function saveToCache(): void {
 		$fname = $this->config['config']['cachePath'];
 		file_put_contents($fname, serialize($this->config));
+	}
+
+	private function logError(string $msg): void {
+		$stderr = fopen('php://stderr', 'w');
+		fprintf($stderr, $msg);
+		fclose($stderr);
 	}
 }

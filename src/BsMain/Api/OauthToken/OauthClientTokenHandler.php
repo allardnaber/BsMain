@@ -52,8 +52,27 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 		$url = $this->getProvider()->getAuthorizationUrl();
 		$_SESSION[self::STATE_NAME] = $this->getProvider()->getState();
 		$_SESSION[self::REDIRECT_URL] = $_SERVER['REQUEST_URI'] ?? '';
-		header('Location: ' . $url);
-		exit();
+		if ($this->isSafari()) {
+			$htmlurl = htmlentities($url);
+			echo <<<HTML
+<h1>Safari User</h1><p>Please use <a href="$htmlurl" target="_blank">a new window</a> to launch this tool</p>
+HTML;
+			exit();
+		}
+		else {
+			header('Location: ' . $url);
+			exit();
+		}
+	}
+
+	// Browser detection is bad, but Safari is worse.
+	// First party cookies are not being read, so force open in a new window.
+	private function isSafari(): bool {
+		$agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+		return
+			str_contains($agent, 'Safari/') &&
+			!str_contains($agent, 'Chrome/') &&
+			!str_contains($agent, 'Chromium/');
 	}
 
 	/**

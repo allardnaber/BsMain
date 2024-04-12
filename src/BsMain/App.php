@@ -11,7 +11,9 @@ use BsMain\Template\OutputTemplate;
 class App {
 
 	public static function start(array $config): void {
-		session_start();
+		if (session_status() === PHP_SESSION_NONE) {
+			session_start();
+		}
 		set_error_handler(ErrorHelper::ERROR_HANDLER);
 		$output = new OutputTemplate($config['smarty']);
 		$configObj = new Configuration($config);

@@ -11,15 +11,13 @@ class SafariOauthException extends \RuntimeException {
 
 	public const EXCEPTION_PARAM_NAME = 'safariRedirect';
 
-	public function __construct(string $message = "") {
+	public function __construct() {
+		parent::__construct('Within Safari you can only use the tool if you open it in a new window.');
+	}
+
+	public function getRedirectLink(): string {
 		$url = $_SERVER['REQUEST_URI'];
-		$htmlUrl = htmlentities(
-			sprintf('%s%s%s=true', $url, str_contains($url, '?') ? '&' : '?', self::EXCEPTION_PARAM_NAME)
-		);
-		parent::__construct(
-			sprintf('Within Safari you can only use the tool if you open it in a new window.<br>' .
-		 			'<a href="%s" target="_blank">Proceed to the tool</a>', $htmlUrl)
-		);
+		return sprintf('%s%s%s=true', $url, str_contains($url, '?') ? '&' : '?', self::EXCEPTION_PARAM_NAME);
 	}
 
 }

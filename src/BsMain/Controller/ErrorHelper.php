@@ -4,6 +4,7 @@ namespace BsMain\Controller;
 
 use BsMain\Exception\BsAppApiException;
 use BsMain\Exception\BsAppRuntimeException;
+use BsMain\Exception\SafariOauthException;
 use GuzzleHttp\Exception\RequestException;
 
 class ErrorHelper {
@@ -19,6 +20,10 @@ class ErrorHelper {
 	}
 
 	public function display() {
+		if ($this->exception instanceof SafariOauthException) {
+			$this->handleSafari();
+			return;
+		}
 		$errorInfo = $this->getErrorInfo();
 		http_response_code($errorInfo[2] ?? 500);
 		$this->controller->assign('supportEmail', $this->controller->getConfig()['app']['supportEmail']);
@@ -38,6 +43,12 @@ class ErrorHelper {
 			return true; // do not show suppressed errors
 		}
 		throw new \ErrorException($message, 0, $severity, $file, $line);
+	}
+
+	public function handleSafari() {
+		assert($this->exception instanceof SafariOauthException);
+		$this->controller->assign('redirectLink', $this->exception->getRedirectLink());
+		$this->controller->getOutput()->display('error_safari.tpl');
 	}
 	
 	private function getErrorInfo(): array {

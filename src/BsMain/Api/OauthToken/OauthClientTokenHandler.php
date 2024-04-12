@@ -52,7 +52,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 		$url = $this->getProvider()->getAuthorizationUrl();
 		$_SESSION[self::STATE_NAME] = $this->getProvider()->getState();
 		$_SESSION[self::REDIRECT_URL] = $_SERVER['REQUEST_URI'] ?? '';
-		if ($this->isSafari() && isset($_GET['safariRedirect'])) {
+		if ($this->isSafari() && !isset($_GET['safariRedirect'])) {
 			$htmlurl = $_SERVER['REQUEST_URI'];
 			$htmlurl .= (str_contains($htmlurl, '?') ? '&' : '?') . 'safariRedirect=true';
 			$htmlurl = htmlentities($htmlurl);

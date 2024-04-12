@@ -2,6 +2,7 @@
 
 namespace BsMain\Api\OauthToken;
 
+use BsMain\Exception\SafariOauthException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Token\AccessTokenInterface;
@@ -52,8 +53,22 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 		$url = $this->getProvider()->getAuthorizationUrl();
 		$_SESSION[self::STATE_NAME] = $this->getProvider()->getState();
 		$_SESSION[self::REDIRECT_URL] = $_SERVER['REQUEST_URI'] ?? '';
+		if ($this->isSafari() && !isset($_GET[SafariOauthException::EXCEPTION_PARAM_NAME])) {
+			throw new SafariOauthException();
+		}
+
 		header('Location: ' . $url);
 		exit();
+	}
+
+	// Browser detection is bad, but Safari is worse.
+	// First party cookies are not being read, so force open in a new window.
+	private function isSafari(): bool {
+		$agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+		return
+			str_contains($agent, 'Safari/') &&
+			!str_contains($agent, 'Chrome/') &&
+			!str_contains($agent, 'Chromium/');
 	}
 
 	/**

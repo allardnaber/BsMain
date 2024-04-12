@@ -6,12 +6,14 @@ class OutputTemplate extends \Smarty {
 	
 	private $lang = null;
 	private $errorTemplate;
-	
+	private $errorSafariTemplate;
+
 	public function __construct($config) {
 		parent::__construct();
 		$this->setPaths($config);
 		$this->configLoad($config['defaultLanguage'] . '.conf');
 		$this->errorTemplate = $config['errorTemplate'];
+		$this->errorSafariTemplate = $config['errorSafariTemplate'] ?? $config['errorTemplate'];
 	}
 	
 	private function setPaths($config) {
@@ -44,6 +46,10 @@ class OutputTemplate extends \Smarty {
 	
 	public function displayError() {
 		$this->display($this->errorTemplate);
+	}
+
+	public function displaySafariError() {
+		$this->display($this->errorSafariTemplate);
 	}
 
 }

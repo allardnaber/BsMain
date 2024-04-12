@@ -48,7 +48,7 @@ class ErrorHelper {
 	public function handleSafari() {
 		assert($this->exception instanceof SafariOauthException);
 		$this->controller->assign('redirectLink', $this->exception->getRedirectLink());
-		$this->controller->getOutput()->display('error_safari.tpl');
+		$this->controller->getOutput()->displaySafariError();
 	}
 	
 	private function getErrorInfo(): array {

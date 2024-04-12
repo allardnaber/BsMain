@@ -8,28 +8,29 @@ use BsMain\Exception\SafariOauthException;
 use GuzzleHttp\Exception\RequestException;
 
 class ErrorHelper {
-	
+
 	private $exception;
 	private $controller;
 
 	public const ERROR_HANDLER = [ self::class, 'errorHandler' ];
-	
+
 	public function __construct(\Throwable $ex, BsBaseController $controller) {
 		$this->exception = $ex;
 		$this->controller = $controller;
 	}
 
 	public function display() {
-		if ($this->exception instanceof SafariOauthException) {
-			$this->handleSafari();
-			return;
-		}
 		$errorInfo = $this->getErrorInfo();
 		http_response_code($errorInfo[2] ?? 500);
 		$this->controller->assign('supportEmail', $this->controller->getConfig()['app']['supportEmail']);
 		$this->controller->assign('errorType', $errorInfo[0]);
 		$this->controller->assign('error', $errorInfo[1]);
-		$this->controller->getOutput()->displayError();
+		if ($this->exception instanceof SafariOauthException) {
+			$this->controller->assign('redirectLink', $this->exception->getRedirectLink());
+			$this->controller->getOutput()->displaySafariError();
+		} else {
+			$this->controller->getOutput()->displayError();
+		}
 	}
 
 	public static function errorHandler($severity, $message, $file, $line): bool {
@@ -45,13 +46,15 @@ class ErrorHelper {
 		throw new \ErrorException($message, 0, $severity, $file, $line);
 	}
 
-	public function handleSafari() {
-		assert($this->exception instanceof SafariOauthException);
-		$this->controller->assign('redirectLink', $this->exception->getRedirectLink());
-		$this->controller->getOutput()->displaySafariError();
-	}
-	
 	private function getErrorInfo(): array {
+		if ($this->exception instanceof SafariOauthException) {
+			return [
+				get_class($this->exception),
+				$this->exception->getMessage(),
+				200
+			];
+		}
+
 		if ($this->exception instanceof RequestException) {
 			return [
 				$this->controller->getOutput()->getConfigVars('error_api_label'),
@@ -59,7 +62,7 @@ class ErrorHelper {
 				$this->exception->getResponse()->getStatusCode()
 			];
 		}
-		
+
 		if ($this->exception instanceof BsAppApiException) {
 			return [
 				sprintf($this->controller->getOutput()->getConfigVars('error_api_label'), $this->exception->getAppName()),
@@ -67,21 +70,21 @@ class ErrorHelper {
 				$this->exception->getStatusCode()
 			];
 		}
-		
+
 		if ($this->exception instanceof BsAppRuntimeException) {
 			return [
 				$this->controller->getOutput()->getConfigVars('error_app_label'),
 				$this->translateErrorMsg($this->exception, $this->exception->getParams())
 			];
 		}
-		
+
 		if ($this->exception instanceof \ErrorException) {
 			return [
 				sprintf('%s:%s', $this->exception->getFile(), $this->exception->getLine()),
 				$this->exception->getMessage()
 			];
 		}
-		
+
 		return [
 			get_class($this->exception),
 			$this->translateErrorMsg($this->exception)
@@ -115,7 +118,7 @@ class ErrorHelper {
 			return $msg;
 		}
 	}
-	
+
 	private function translateChunckedError(BsAppApiException $ex) {
 		$parts = explode('_', strtolower($ex->getMessage()));
 		for ($i = count($parts); $i >= 2; $i--) {

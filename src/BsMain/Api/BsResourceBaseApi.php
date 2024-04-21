@@ -200,8 +200,10 @@ abstract class BsResourceBaseApi {
 			return $response->getBody()->getContents();
 		} catch (RequestException $ex) {
 			$status = $ex->getResponse() !== null ? $ex->getResponse()->getStatusCode() : 0;
-			if ($status == 400) {
-				print_r($ex->getResponse()->getBody()->getContents());//die();
+			if ($status == 403) {
+				echo '<!--';
+				print_r($ex->getResponse()->getBody()->getContents());
+				echo '-->';
 			}
 			throw new BsAppApiException($method, $dataType, $status);
 		} catch (GuzzleException $ex) {

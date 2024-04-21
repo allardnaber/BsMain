@@ -42,4 +42,17 @@ class BsCoursesApi extends BsResourceBaseApi {
 			ContentObject::class, 'the content object', 'POST',
 		$contentObject->getJson(true));
 	}
+
+	/**
+	 * Specify the position order of a content object with respect to its sibling objects.
+	 * @param int $courseId Org unit ID.
+	 * @param int $objectId Content Object ID.
+	 * @param string $position The order position within siblings and can be either 'first', 'last', or the objectId to be placed after.
+	 * @return void
+	 */
+	public function setContentObjectOrder(int $courseId, int $objectId, string $position): void {
+		$this->request(
+			$this->url('/le/1.67/%d/content/order/objectId/%d?position=%s', $courseId, $objectId, $position),
+			null, 'content ordering', 'POST');
+	}
 }

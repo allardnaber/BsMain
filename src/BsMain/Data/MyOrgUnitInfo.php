@@ -28,6 +28,6 @@ class MyOrgUnitInfo extends GenericObject {
 	}
 
 	protected function postCreationProcessing(): void {
-		$this->OrgUnit = new OrgUnitInfo($this->OrgUnit);
+		$this->OrgUnit = OrgUnitInfo::createNewInstance($this->OrgUnit);
 	}
 }

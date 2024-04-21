@@ -131,7 +131,7 @@ abstract class BsResourceBaseApi {
 		if ($resultClass === null) {
 			return null;
 		}
-		$resultObj = new $resultClass($result);
+		$resultObj = $resultClass::createNewInstance($result);
 		if (!$resultObj instanceof GenericObject) {
 			throw new \InvalidArgumentException('Can only create subclasses of ' . GenericObject::class);
 		}

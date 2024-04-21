@@ -18,12 +18,16 @@ abstract class GenericObject {
 	public static function array(array $json): array {
 		$result = [];
 		foreach ($json as $item) {
-			$result[] = new static($item);
+			$result[] = static::createNewInstance($item);
 		}
 		return $result;
 	}
 
-	public function __construct(?array $json = null) {
+	public static function createNewInstance(?array $json = null): static {
+		return new static($json);
+	}
+
+	protected function __construct(?array $json = null) {
 		$this->data = $json ?? [];
 		if ($json !== null) {
 			$this->postCreationProcessing();

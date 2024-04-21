@@ -17,8 +17,8 @@ class UserOrgUnit extends GenericObject {
 	}
 
 	protected function postCreationProcessing(): void {
-		$this->Role = new RoleInfo($this->Role);
-		$this->OrgUnit = new OrgUnitInfo($this->OrgUnit);
+		$this->Role = RoleInfo::createNewInstance($this->Role);
+		$this->OrgUnit = OrgUnitInfo::createNewInstance($this->OrgUnit);
 	}
 
 }

@@ -29,7 +29,7 @@ class BsApiClient {
 	}
 	
 	public function whoami(): WhoAmIUser {
-		return new WhoAmIUser($this->provider->getResourceOwner($this->tokenHandler->getAccessToken())->toArray());
+		return WhoAmIUser::createNewInstance($this->provider->getResourceOwner($this->tokenHandler->getAccessToken())->toArray());
 	}
 	
 	private function createTokenHandler($useServiceAccount): void {

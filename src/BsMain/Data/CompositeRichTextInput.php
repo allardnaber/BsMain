@@ -29,7 +29,7 @@ class CompositeRichTextInput extends GenericObject {
 	}
 
 	private static function getObject(string $type, ?string $content) {
-		$result = new self();
+		$result = self::createNewInstance();
 		$result->Type = $type;
 		$result->Content = $content;
 		return $result;

@@ -101,4 +101,8 @@ class BsApiClient {
 	public function sections(): BsSectionsApi {
 		return $this->getResourceApi('sections', BsSectionsApi::class);
 	}
+
+	public function content(): BsContentApi {
+		return $this->getResourceApi('content', BsContentApi::class);
+	}
 }

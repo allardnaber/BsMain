@@ -7,7 +7,6 @@ use BsMain\Exception\BsAppApiException;
 use BsMain\Exception\BsAppRuntimeException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\Stream;
 use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\RequestOptions;
 use RuntimeException;
@@ -208,11 +207,11 @@ abstract class BsResourceBaseApi {
 	}
 
 	protected function addFileToMultipartOptions(string $visibleName, string $actualFilename, string $contentType, $options = []): array {
-		if (!isset($options['multipart'])) {
-			$options['multipart'] = [];
+		if (!isset($options[RequestOptions::MULTIPART])) {
+			$options[RequestOptions::MULTIPART] = [];
 		}
 		$fileInfo = pathinfo($actualFilename);
-		$options['multipart'][] = [
+		$options[RequestOptions::MULTIPART][] = [
 			'name' => $visibleName,
 			'contents' => Utils::tryFopen($actualFilename, 'r'),
 			'filename' => $fileInfo['basename'],

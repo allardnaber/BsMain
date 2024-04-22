@@ -2,12 +2,9 @@
 
 namespace BsMain\Api;
 
-use BsMain\Data\ContentObject;
-use BsMain\Data\ContentObjectData;
 use BsMain\Data\CourseOffering;
 use BsMain\Data\GetImportJobResponse;
 use BsMain\Data\JobToken;
-use BsMain\Data\TableOfContents;
 
 class BsCoursesApi extends BsResourceBaseApi {
 

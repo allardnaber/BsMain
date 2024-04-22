@@ -194,7 +194,8 @@ abstract class BsResourceBaseApi {
 			);
 
 			if ($jsonData !== null) {
-				$options[RequestOptions::JSON] = json_decode($jsonData);
+				$options[RequestOptions::BODY] = $jsonData;
+				$options[RequestOptions::HEADERS]['Content-Type'] = 'application/json';
 			}
 			$response = $this->client->getHttp()->send($request, $options);
 			return $response->getBody()->getContents();

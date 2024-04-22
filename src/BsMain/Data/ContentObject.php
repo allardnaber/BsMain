@@ -8,7 +8,7 @@ use BsMain\Exception\BsAppRuntimeException;
 
 /**
  * ContentObject is the combined object for modules and topics. Common properties are in this object, more specific
- * properties are in the overloaded classes ContentObjectModule and ContentObjectTopic. The {@see createNewInstance}
+ * properties are in the overloaded classes ContentObjectModule and ContentObjectTopic. The {@see instance}
  * method differentiates between the two.
  *
  * MODULE {
@@ -64,9 +64,9 @@ class ContentObject extends GenericObject {
 		];
 	}
 
-	public static function createNewInstance(?array $json = null): static {
+	public static function instance(?array $json = null): static {
 		if ($json === null) {
-			return parent::createNewInstance($json);
+			return parent::instance($json);
 		}
 		if (!isset($json['Type'])) {
 			throw new BsAppRuntimeException('Content Object type is not specified, this is a required field.');

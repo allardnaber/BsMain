@@ -23,6 +23,6 @@ class BsCoursesApi extends BsResourceBaseApi {
 		return $this->request(
 			$this->url('/le/1.51/import/%d/imports/%s', $courseId, $jobToken),
 			GetImportJobResponse::class, 'the import status');
-
 	}
+
 }

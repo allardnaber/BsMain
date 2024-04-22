@@ -7,8 +7,8 @@ use BsMain\Exception\BsAppApiException;
 use BsMain\Exception\BsAppRuntimeException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\Stream;
 use GuzzleHttp\Psr7\Utils;
+use GuzzleHttp\RequestOptions;
 use RuntimeException;
 
 abstract class BsResourceBaseApi {
@@ -130,7 +130,7 @@ abstract class BsResourceBaseApi {
 		if ($resultClass === null) {
 			return null;
 		}
-		$resultObj = new $resultClass($result);
+		$resultObj = $resultClass::instance($result);
 		if (!$resultObj instanceof GenericObject) {
 			throw new \InvalidArgumentException('Can only create subclasses of ' . GenericObject::class);
 		}
@@ -193,7 +193,8 @@ abstract class BsResourceBaseApi {
 			);
 
 			if ($jsonData !== null) {
-				$request = $request->withBody($this->stringToStream($jsonData));
+				$options[RequestOptions::BODY] = $jsonData;
+				$options[RequestOptions::HEADERS]['Content-Type'] = 'application/json';
 			}
 			$response = $this->client->getHttp()->send($request, $options);
 			return $response->getBody()->getContents();
@@ -206,11 +207,11 @@ abstract class BsResourceBaseApi {
 	}
 
 	protected function addFileToMultipartOptions(string $visibleName, string $actualFilename, string $contentType, $options = []): array {
-		if (!isset($options['multipart'])) {
-			$options['multipart'] = [];
+		if (!isset($options[RequestOptions::MULTIPART])) {
+			$options[RequestOptions::MULTIPART] = [];
 		}
 		$fileInfo = pathinfo($actualFilename);
-		$options['multipart'][] = [
+		$options[RequestOptions::MULTIPART][] = [
 			'name' => $visibleName,
 			'contents' => Utils::tryFopen($actualFilename, 'r'),
 			'filename' => $fileInfo['basename'],
@@ -219,21 +220,6 @@ abstract class BsResourceBaseApi {
 			]
 		];
 		return $options;
-	}
-
-	/**
-	 * Converts a string into a stream, so it can be sent in a Guzzle request.
-	 * @param string $resource The source string.
-	 * @return Stream The resulting stream.
-	 */
-	private function stringToStream(string $resource): Stream {
-		$stream = fopen('php://temp', 'r+');
-		if ($resource !== '') {
-			fwrite($stream, $resource);
-			fseek($stream, 0);
-		}
-
-		return new Stream($stream);
 	}
 
 }

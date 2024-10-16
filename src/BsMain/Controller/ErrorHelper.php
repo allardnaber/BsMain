@@ -5,12 +5,14 @@ namespace BsMain\Controller;
 use BsMain\Exception\BsAppApiException;
 use BsMain\Exception\BsAppRuntimeException;
 use BsMain\Exception\SafariOauthException;
+use ErrorException;
 use GuzzleHttp\Exception\RequestException;
+use SmartyException;
 
 class ErrorHelper {
 
-	private $exception;
-	private $controller;
+	private \Throwable $exception;
+	private BsBaseController $controller;
 
 	public const ERROR_HANDLER = [ self::class, 'errorHandler' ];
 
@@ -19,7 +21,10 @@ class ErrorHelper {
 		$this->controller = $controller;
 	}
 
-	public function display() {
+	/**
+	 * @throws SmartyException
+	 */
+	public function display(): void {
 		$errorInfo = $this->getErrorInfo();
 		http_response_code($errorInfo[2] ?? 500);
 		$this->controller->assign('supportEmail', $this->controller->getConfig()['app']['supportEmail']);
@@ -33,6 +38,9 @@ class ErrorHelper {
 		}
 	}
 
+	/**
+	 * @throws ErrorException
+	 */
 	public static function errorHandler($severity, $message, $file, $line): bool {
 		// Check if error was suppressed (https://www.php.net/manual/en/language.operators.errorcontrol.php)
 		// or not relevant to process further.
@@ -43,7 +51,7 @@ class ErrorHelper {
 		) {
 			return true; // do not show suppressed errors
 		}
-		throw new \ErrorException($message, 0, $severity, $file, $line);
+		throw new ErrorException($message, 0, $severity, $file, $line);
 	}
 
 	private function getErrorInfo(): array {
@@ -66,7 +74,7 @@ class ErrorHelper {
 		if ($this->exception instanceof BsAppApiException) {
 			return [
 				sprintf($this->controller->getOutput()->getConfigVars('error_api_label'), $this->exception->getAppName()),
-				$this->translateChunckedError($this->exception),
+				$this->translateChunkedError($this->exception),
 				$this->exception->getStatusCode()
 			];
 		}
@@ -78,7 +86,7 @@ class ErrorHelper {
 			];
 		}
 
-		if ($this->exception instanceof \ErrorException) {
+		if ($this->exception instanceof ErrorException) {
 			return [
 				sprintf('%s:%s', $this->exception->getFile(), $this->exception->getLine()),
 				$this->exception->getMessage()
@@ -91,7 +99,7 @@ class ErrorHelper {
 		];
 	}
 
-	private function translateErrorMsg(\Throwable $ex, $params = null) {
+	private function translateErrorMsg(\Throwable $ex, $params = null): string {
 		$msg = $ex->getMessage();
 		if (str_starts_with($msg, '{#') && str_ends_with($msg, '#}')) {
 			$key = substr($msg, 2, strlen($msg) - 4);
@@ -104,7 +112,7 @@ class ErrorHelper {
 		return $msg;
 	}
 	
-	private function processParams($msg, $params, $prefix = '') {
+	private function processParams($msg, $params, $prefix = ''): string {
 		for ($i = 0; $i < count($params); $i++) {
 			$translated = $this->controller->getOutput()->getConfigVars(str_replace(' ', '_', $prefix . $params[$i]));
 			if (!empty($translated)) {
@@ -119,7 +127,7 @@ class ErrorHelper {
 		}
 	}
 
-	private function translateChunckedError(BsAppApiException $ex) {
+	private function translateChunkedError(BsAppApiException $ex): string {
 		$parts = explode('_', strtolower($ex->getMessage()));
 		for ($i = count($parts); $i >= 2; $i--) {
 			$key = implode('_', array_slice($parts, 0, $i));

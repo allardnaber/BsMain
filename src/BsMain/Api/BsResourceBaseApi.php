@@ -100,7 +100,7 @@ abstract class BsResourceBaseApi {
 	 */
 	private function getObjectListPage(string $url, string $dataType, mixed $response): array {
 		$result = $response['Objects'];
-		// different than brightspace|api, because url already includes "/d2l/api"
+		// different from brightspace|api, because url already includes "/d2l/api"
 		$urlPrefix = $this->client->getConfig('brightspace', 'url');
 		while ($response['Next'] !== null) {
 			$response = json_decode($this->requestRaw($urlPrefix . $response['Next'], $dataType), true);
@@ -116,7 +116,7 @@ abstract class BsResourceBaseApi {
 	 * @param string $method
 	 * @param string|null $jsonData
 	 * @param array $options
-	 * @return mixed Decoded associative array from raw response.
+	 * @return mixed|null Decoded associative array from raw response.
 	 */
 	protected function request(
 		string $url,
@@ -125,7 +125,7 @@ abstract class BsResourceBaseApi {
 		string $method = 'GET',
 		?string $jsonData = null,
 		array $options = []
-	): mixed {
+	): ?GenericObject {
 		$result = json_decode($this->requestRaw($url, $dataType, $method, $jsonData, $options), true);
 		if ($resultClass === null) {
 			return null;

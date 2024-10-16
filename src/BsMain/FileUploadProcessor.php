@@ -23,7 +23,7 @@ class FileUploadProcessor {
 	 * @param string $fieldName Form field name of the file upload.
 	 * @throws Exception\BsAppRuntimeException If the file was not uploaded correctly.
 	 */
-	public static function verifyUpload($fieldName) {
+	public static function verifyUpload(string $fieldName): void {
 		$fileError = $_FILES[$fieldName]['error'] ?? '';
 		if (empty($_FILES) || $fileError === UPLOAD_ERR_INI_SIZE) {
 			$maxFileSize = self::convertConfigSizeToBytes(ini_get('upload_max_filesize'));
@@ -53,7 +53,7 @@ class FileUploadProcessor {
 		}
 	}
 
-	private static function convertConfigSizeToBytes($configSize) {
+	private static function convertConfigSizeToBytes($configSize): int {
 		if (preg_match('/^(\\d+)([KMGT]?)$/', strtoupper($configSize), $matches)) {
 			$factor = array_search($matches[2], ['', 'K', 'M', 'G', 'T']);
 			return $matches[1] * (1024 ** $factor);

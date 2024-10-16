@@ -15,6 +15,7 @@ class AccountController extends BsBaseController {
 
 	private BsApiClient $client;
 	private bool $isServiceAccount;
+	/** @noinspection SpellCheckingInspection */
 	private WhoAmIUser $whoami;
 
 	public function __construct(OutputTemplate $output, Configuration $config) {
@@ -26,6 +27,7 @@ class AccountController extends BsBaseController {
 		$this->isServiceAccount = $this->getConfigOptional('brightspace', 'serviceAccount') != null &&
 			strtolower($this->whoami->UniqueName) === strtolower($this->getConfig('brightspace', 'serviceAccount'));
 
+		/** @noinspection SpellCheckingInspection */
 		$this->assign('whoami', $this->whoami);
 		$this->assign('token',  json_encode(OauthClientTokenHandler::getTokenFromSession()->jsonSerialize()));
 		$this->assign('isServiceAccount', $this->isServiceAccount);

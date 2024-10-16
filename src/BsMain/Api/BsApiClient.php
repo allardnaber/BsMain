@@ -8,17 +8,18 @@ use BsMain\Api\OauthToken\OauthTokenHandler;
 use BsMain\Configuration\Configuration;
 use BsMain\Data\WhoAmIUser;
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
+use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\GenericProvider;
-use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 
 /**
  * Base class with utilities to interact with the Brightspace API.
  */
 class BsApiClient {
 	private Configuration $config;
-	private $provider;
-	private $http;
-	private $tokenHandler;
+	private AbstractProvider $provider;
+	private ClientInterface $http;
+	private OauthTokenHandler $tokenHandler;
 	private array $resourceApis = [];
 
 	public function __construct(Configuration $config, $useServiceAccount = false) {
@@ -27,7 +28,8 @@ class BsApiClient {
 		$this->http = new Client();
 		$this->createTokenHandler($useServiceAccount);
 	}
-	
+
+	/** @noinspection SpellCheckingInspection */
 	public function whoami(): WhoAmIUser {
 		return WhoAmIUser::instance($this->provider->getResourceOwner($this->tokenHandler->getAccessToken())->toArray());
 	}
@@ -82,6 +84,7 @@ class BsApiClient {
 		return $this->getResourceApi('users', BsUsersApi::class);
 	}
 
+	/** @noinspection SpellCheckingInspection */
 	public function orgs(): BsOrgsApi {
 		return $this->getResourceApi('orgs', BsOrgsApi::class);
 	}

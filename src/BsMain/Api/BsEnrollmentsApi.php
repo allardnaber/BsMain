@@ -41,19 +41,18 @@ class BsEnrollmentsApi extends BsResourceBaseApi {
 	 * @param CreateEnrollmentData[] $enrollments
 	 * @return BatchEnrollmentError[]
 	 */
-	public function createEnrollmentsInBatch(array $enrollments): array {
-		$runs = ceil(count($enrollments) / self::ENROLLMENT_BATCH_MAX_SIZE);
+	public function createAndUpdateEnrollmentsInBatch(array $enrollments): array {
 		$errors = [];
-		for ($run = 0; $run < $runs; $run++) {
-			$slice = array_slice($enrollments, $run * self::ENROLLMENT_BATCH_MAX_SIZE, self::ENROLLMENT_BATCH_MAX_SIZE);
 
+		$chunks = array_chunk($enrollments, self::ENROLLMENT_BATCH_MAX_SIZE);
+		foreach ($chunks as $chunk) {
 			$errors += $this->requestArray(
 				$this->url('/lp/1.45/enrollments/batch/'),
 				BatchEnrollmentError::class,
 				false,
 				'enrollments',
 				'POST',
-				json_encode($slice)
+				json_encode($chunk)
 			);
 		}
 		return $errors;

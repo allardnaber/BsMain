@@ -71,9 +71,9 @@ class Configuration {
 	 * @throws RuntimeException
 	 */
 	private function resolveConfig(): void {
-		if (($fromCache = $this->getFromCache(60 * 60 * 24)) !== null) {
+		if (($fromCache = $this->getFromCache(-1)) !== null) {
 			$this->config = $fromCache;
-			//return $fromCache;
+			return;
 		}
 
 		try {

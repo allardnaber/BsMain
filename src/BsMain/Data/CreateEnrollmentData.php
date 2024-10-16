@@ -18,7 +18,7 @@ class CreateEnrollmentData extends GenericObject implements \JsonSerializable {
 		return [ 'OrgUnitId', 'UserId', 'RoleId' ];
 	}
 
-	public function jsonSerialize() {
+	public function jsonSerialize(): array {
 		return $this->getAllFields();
 	}
 }

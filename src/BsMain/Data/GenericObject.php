@@ -83,6 +83,10 @@ abstract class GenericObject {
 		return json_encode($result);
 	}
 
+	public function getAllFields(): array {
+		return $this->data;
+	}
+
 	/**
 	 * Provides the Brightspace unique id for the object type, to be implemented by the object itself.
 	 * @return int|null The unique id if available, null otherwise.

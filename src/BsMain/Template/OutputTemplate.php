@@ -2,11 +2,12 @@
 
 namespace BsMain\Template;
 
+use SmartyException;
+
 class OutputTemplate extends \Smarty {
-	
-	private $lang = null;
-	private $errorTemplate;
-	private $errorSafariTemplate;
+
+	private string $errorTemplate;
+	private string $errorSafariTemplate;
 
 	public function __construct($config) {
 		parent::__construct();
@@ -16,7 +17,7 @@ class OutputTemplate extends \Smarty {
 		$this->errorSafariTemplate = $config['errorSafariTemplate'] ?? $config['errorTemplate'];
 	}
 	
-	private function setPaths($config) {
+	private function setPaths($config): void {
 		$base = $config['baseDir'];
 		$cacheDir = $base . $config['cacheDir'];
 		$compileDir = $base . $config['compileDir'];
@@ -29,26 +30,28 @@ class OutputTemplate extends \Smarty {
 		$this->escape_html = true;
 	}
 	
-	private function createDir($path) {
+	private function createDir($path): void {
 		if (!file_exists($path)) {
 			mkdir ($path, 0770, true);
 		}
 	}
 	
-	public function setLanguage($cultureCode) {
-		try {
-			$this->lang = preg_replace('/[^a-z]/', '', strtolower(substr($cultureCode, 0, 2)));
-			$this->configLoad($this->lang . '.conf');
-		} catch (\SmartyException $ex) {
-			// The selected language is not available, keep default.
-		}
+	public function setLanguage($cultureCode): void {
+		$lang = preg_replace('/[^a-z]/', '', strtolower(substr($cultureCode, 0, 2)));
+		$this->configLoad($lang . '.conf'); // silently fails if it does not exist
 	}
-	
-	public function displayError() {
+
+	/**
+	 * @throws SmartyException
+	 */
+	public function displayError(): void {
 		$this->display($this->errorTemplate);
 	}
 
-	public function displaySafariError() {
+	/**
+	 * @throws SmartyException
+	 */
+	public function displaySafariError(): void {
 		$this->display($this->errorSafariTemplate);
 	}
 

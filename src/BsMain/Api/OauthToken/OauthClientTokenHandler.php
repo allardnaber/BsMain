@@ -22,7 +22,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 	 *    this session and refresh if it has expired. -> refreshAccessTokenIfRequired
 	 * 3. No token available yet, start authorization process -> getInitialTokenFromuser
 	 */
-	public function retrieveAccessToken() {
+	public function retrieveAccessToken(): void {
 		if (isset($_GET['code']) && isset($_GET['state']) && !isset($_SESSION[self::TOKEN_NAME])) {
 			$this->processInitialTokenResponse();
 		} elseif (isset($_SESSION[self::TOKEN_NAME])) {
@@ -37,7 +37,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 	/**
 	 * @throws IdentityProviderException
 	 */
-	public function refreshAccessToken() {
+	public function refreshAccessToken(): void {
 		$this->setAccessToken($this->getProvider()->getAccessToken(
 				'refresh_token',
 				['refresh_token' => $this->getCurrentAccessToken()->getRefreshToken()]

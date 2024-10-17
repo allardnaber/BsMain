@@ -7,14 +7,20 @@ namespace BsMain\Exception;
  * in translatable error messages.
  */
 class BsAppRuntimeException extends \RuntimeException {
+
+	/**
+	 * @var string[] Parameters for error message
+	 */
+	private array $params = [];
 	
-	private $params = [];
-	
-	public function addParam($value) {
+	public function addParam(string $value): void {
 		$this->params[] = $value;
 	}
-	
-	public function getParams() {
+
+	/**
+	 * @return string[]
+	 */
+	public function getParams(): array {
 		return $this->params;
 	}
 }

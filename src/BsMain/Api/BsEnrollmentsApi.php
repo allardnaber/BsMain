@@ -2,11 +2,15 @@
 
 namespace BsMain\Api;
 
+use BsMain\Data\BatchEnrollmentError;
 use BsMain\Data\ClasslistUser;
+use BsMain\Data\CreateEnrollmentData;
 use BsMain\Data\MyOrgUnitInfo;
 use BsMain\Data\UserOrgUnit;
 
 class BsEnrollmentsApi extends BsResourceBaseApi {
+
+	private const ENROLLMENT_BATCH_MAX_SIZE = 1000;
 
 	/**
 	 * @param int $userId
@@ -31,5 +35,26 @@ class BsEnrollmentsApi extends BsResourceBaseApi {
 
 	public function getMyEnrollmentForOrgUnit(int $orgUnit): MyOrgUnitInfo {
 		return $this->request($this->url('/lp/1.43/enrollments/myenrollments/%d', $orgUnit), MyOrgUnitInfo::class, 'enrollment details');
+	}
+
+	/**
+	 * @param CreateEnrollmentData[] $enrollments
+	 * @return BatchEnrollmentError[]
+	 */
+	public function createAndUpdateEnrollmentsInBatch(array $enrollments): array {
+		$errors = [];
+
+		$chunks = array_chunk($enrollments, self::ENROLLMENT_BATCH_MAX_SIZE);
+		foreach ($chunks as $chunk) {
+			$errors += $this->requestArray(
+				$this->url('/lp/1.45/enrollments/batch/'),
+				BatchEnrollmentError::class,
+				false,
+				'enrollments',
+				'POST',
+				json_encode($chunk)
+			);
+		}
+		return $errors;
 	}
 }

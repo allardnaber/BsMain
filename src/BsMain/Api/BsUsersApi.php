@@ -46,6 +46,13 @@ class BsUsersApi extends BsResourceBaseApi {
 		);
 	}
 
+	public function setUserLocale(int $userId, int $localeId): void {
+		$this->request(
+			$this->url('/lp/1.33/accountSettings/%d/locale/', $userId), null, 'the account language',
+			'PUT', json_encode(['LocaleId' => $localeId])
+		);
+	}
+
 	public function getMyLocale(): Locale {
 		return $this->request(
 			$this->url('/lp/1.31/accountSettings/mySettings/locale/'),

@@ -14,7 +14,7 @@ use BsMain\Data\GroupsJobData;
 class BsGroupsApi extends BsResourceBaseApi {
 
 	public function getGroupCategory(int $courseId, int $categoryId): GroupCategoryDataFetch {
-		return $this->request($this->url('/lp/1.31/%d/groupcategories/%d', $courseId, $categoryId),
+		return $this->request($this->url('/lp/1.46/%d/groupcategories/%d', $courseId, $categoryId),
 			GroupCategoryDataFetch::class, 'the group category');
 	}
 
@@ -23,7 +23,7 @@ class BsGroupsApi extends BsResourceBaseApi {
 	 * @return GroupCategoryDataFetch[]
 	 */
 	public function getGroupCategories(int $courseId): array {
-		return $this->requestArray($this->url('/lp/1.31/%d/groupcategories/', $courseId),
+		return $this->requestArray($this->url('/lp/1.46/%d/groupcategories/', $courseId),
 			GroupCategoryDataFetch::class, false, 'list of group categories');
 	}
 

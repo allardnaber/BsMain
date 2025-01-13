@@ -22,7 +22,7 @@ class BsBaseController {
 	public function display($template): void {
 		$this->output->display($template);
 	}
-	
+
 	public function assign($var, $value): void {
 		$this->output->assign($var, $value);
 	}
@@ -42,7 +42,10 @@ class BsBaseController {
 	public function getConfigOptional(string ... $path): string|array|null {
 		return $this->config->getOptional(...$path);
 	}
-	
 
+	protected function outputJson(mixed $data): void {
+		header('Content-Type: application/json');
+		echo json_encode($data);
+	}
 	
 }

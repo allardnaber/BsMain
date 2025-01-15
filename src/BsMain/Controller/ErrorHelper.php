@@ -26,6 +26,7 @@ class ErrorHelper {
 	 */
 	public function display(): void {
 		$errorInfo = $this->getErrorInfo();
+		error_log($this->getLogLine($errorInfo));
 		http_response_code($errorInfo[2] ?? 500);
 		$this->controller->assign('supportEmail', $this->controller->getConfig()['app']['supportEmail']);
 		$this->controller->assign('errorType', $errorInfo[0]);
@@ -36,6 +37,14 @@ class ErrorHelper {
 		} else {
 			$this->controller->getOutput()->displayError();
 		}
+	}
+
+	private function getLogLine(array $errorInfo): string {
+		$className = get_class($this->exception);
+		$shortClassName = substr($className, strrpos($className, '\\') + 1);
+
+		return sprintf('%s: %s [%s]', $shortClassName, $errorInfo[0] . ' ' . $errorInfo[1],
+			$_SERVER['QUERY_STRING']);
 	}
 
 	/**

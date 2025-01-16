@@ -3,6 +3,7 @@
 namespace BsMain\Controller;
 
 use BsMain\Configuration\Configuration;
+use BsMain\Exception\BsAppRuntimeException;
 use BsMain\Template\OutputTemplate;
 use SmartyException;
 
@@ -41,6 +42,12 @@ class BsBaseController {
 
 	public function getConfigOptional(string ... $path): string|array|null {
 		return $this->config->getOptional(...$path);
+	}
+
+	protected function requirePOST(): void {
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			throw new BsAppRuntimeException('Request was denied, only POST is accepted.');
+		}
 	}
 
 	protected function outputJson(mixed $data): void {

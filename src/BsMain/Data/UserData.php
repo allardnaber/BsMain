@@ -4,7 +4,7 @@ namespace BsMain\Data;
 
 /**
  * D2L returns:
- * see https://docs.valence.desire2learn.com/res/user.html#User.CreateUserData
+ * see https://docs.valence.desire2learn.com/res/user.html#User.UserData
  * {
 		"OrgId": <number:D2LID>,
 		"UserId": <number:D2LID>,

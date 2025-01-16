@@ -5,6 +5,7 @@ namespace BsMain\Api;
 use BsMain\Data\BatchEnrollmentError;
 use BsMain\Data\ClasslistUser;
 use BsMain\Data\CreateEnrollmentData;
+use BsMain\Data\EnrollmentData;
 use BsMain\Data\MyOrgUnitInfo;
 use BsMain\Data\UserOrgUnit;
 
@@ -35,6 +36,13 @@ class BsEnrollmentsApi extends BsResourceBaseApi {
 
 	public function getMyEnrollmentForOrgUnit(int $orgUnit): MyOrgUnitInfo {
 		return $this->request($this->url('/lp/1.43/enrollments/myenrollments/%d', $orgUnit), MyOrgUnitInfo::class, 'enrollment details');
+	}
+
+	public function createOrUpdateEnrollment(CreateEnrollmentData $data): EnrollmentData {
+		return $this->request(
+			$this->url('/lp/1.43/enrollments/'), EnrollmentData::class, 'enrollment',
+			'POST', $data->getJson(true)
+		);
 	}
 
 	/**

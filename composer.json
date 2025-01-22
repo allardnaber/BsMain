@@ -14,8 +14,15 @@
     "composer/composer": "*",
     "league/oauth2-client": "*",
     "smarty/smarty": "4.*",
-    "csharpru/vault-php": "4.3.*"
+    "csharpru/vault-php": "4.3.*",
+    "allardnaber/phpdbsessionhandler": "*@dev"
   },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/allardnaber/PhpDbSessionHandler"
+    }
+  ],
   "autoload": {
     "psr-4": {
       "BsMain\\": "src/BsMain/"

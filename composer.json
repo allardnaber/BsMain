@@ -14,7 +14,9 @@
     "composer/composer": "*",
     "league/oauth2-client": "*",
     "smarty/smarty": "4.*",
-    "csharpru/vault-php": "4.3.*",
+    "csharpru/vault-php": "4.3.*"
+  },
+  "require-dev": {
     "allardnaber/phpdbsessionhandler": "*@dev"
   },
   "repositories": [

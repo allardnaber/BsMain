@@ -69,10 +69,10 @@ class OauthDatabaseServiceTokenHandler extends OauthTokenHandler {
 				return new AccessToken(json_decode($result['token'], true));
 			}
 			else {
-				throw new BsAppRuntimeException('Could not find or read service token');
+				throw new BsAppRuntimeException('Could not find or read Brightspace service token');
 			}
 		} catch (\PDOException $e) {
-			throw new BsAppRuntimeException('Error while reading service token: ' . $e->getMessage(), 0, $e);
+			throw new BsAppRuntimeException('Brightspace service account has not yet been configured or cannot be read.', 0, $e);
 		}
 	}
 
@@ -89,6 +89,7 @@ class OauthDatabaseServiceTokenHandler extends OauthTokenHandler {
 	 */
 	public static function saveAccessToken(Configuration $config, AccessTokenInterface $token): void {
 		$connection = self::getDbConnection($config);
+		self::optionallyCreateTable($connection);
 		self::saveAccessTokenToDb($connection, $token);
 	}
 }

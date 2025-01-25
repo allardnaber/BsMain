@@ -57,7 +57,7 @@ class OauthDatabaseServiceTokenHandler extends OauthTokenHandler {
 
 	private static function optionallyCreateTable(PDO $connection): void {
 		$connection->exec(
-			sprintf('create table if not exists %s ( token text )', self::TABLE_NAME)
+			sprintf('create table if not exists %1$s ( token text ); insert into %1$s values (\'\');', self::TABLE_NAME)
 		);
 	}
 

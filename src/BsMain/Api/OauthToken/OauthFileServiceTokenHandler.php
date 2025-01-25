@@ -13,7 +13,7 @@ use BsMain\Exception\BsAppRuntimeException;
  * Write access to the file is guarded with file locks to prevent to separate processes to attempt to renew the
  * token at the same time.
  */
-class OauthServiceTokenHandler extends OauthTokenHandler {
+class OauthFileServiceTokenHandler extends OauthTokenHandler {
 
 	private const READ_MODE = 1;
 	private const WRITE_MODE = 2;
@@ -44,14 +44,11 @@ class OauthServiceTokenHandler extends OauthTokenHandler {
 		// Check again to see if the token has expired, it might have been refreshed already.
 		// In that case $token contains the newest token, we can proceed with that.
 		if ($token->hasExpired()) {
-			$token = $this->getProvider()->getAccessToken('refresh_token', [
-				'refresh_token' => $this->getCurrentAccessToken()->getRefreshToken()
-			]);
+			$this->renewTokenWithProvider();
 
 			self::writeTokenToFileReference($filePointer, $token);
 		}
 
-		$this->setAccessToken($token);
 		self::closeTokenFile($filePointer);
 	}
 

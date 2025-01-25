@@ -4,7 +4,7 @@ namespace BsMain\Controller;
 
 use BsMain\Api\BsApiClient;
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
-use BsMain\Api\OauthToken\OauthServiceTokenHandler;
+use BsMain\Api\OauthToken\OauthDatabaseServiceTokenHandler;
 use BsMain\Configuration\Configuration;
 use BsMain\Controller\Attributes\Route;
 use BsMain\Data\WhoAmIUser;
@@ -47,7 +47,7 @@ class AccountController extends BsBaseController {
 			);
 		}
 
-		OauthServiceTokenHandler::saveAccessToken($this->getFullConfig(), OauthClientTokenHandler::getTokenFromSession());
+		OauthDatabaseServiceTokenHandler::saveAccessToken($this->getFullConfig(), OauthClientTokenHandler::getTokenFromSession());
 
 		$this->assign('tokenRegistered', true);
 		$this->display('account.tpl');

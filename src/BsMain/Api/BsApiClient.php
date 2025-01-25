@@ -3,7 +3,7 @@
 namespace BsMain\Api;
 
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
-use BsMain\Api\OauthToken\OauthServiceTokenHandler;
+use BsMain\Api\OauthToken\OauthDatabaseServiceTokenHandler;
 use BsMain\Api\OauthToken\OauthTokenHandler;
 use BsMain\Configuration\Configuration;
 use BsMain\Data\WhoAmIUser;
@@ -36,7 +36,7 @@ class BsApiClient {
 	
 	private function createTokenHandler($useServiceAccount): void {
 		if ($useServiceAccount) {
-			$this->tokenHandler = new OauthServiceTokenHandler($this->provider, $this->config);
+			$this->tokenHandler = new OauthDatabaseServiceTokenHandler($this->provider, $this->config);
 		}
 		else {
 			$this->tokenHandler = new OauthClientTokenHandler($this->provider, $this->config);

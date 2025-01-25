@@ -15,7 +15,8 @@
     "league/oauth2-client": "*",
     "smarty/smarty": "4.*",
     "csharpru/vault-php": "4.3.*",
-    "allardnaber/phpdbsessionhandler": "*@dev"
+    "allardnaber/phpdbsessionhandler": "*@dev",
+    "ext-pdo": "*"
   },
   "repositories": [
     {

@@ -45,10 +45,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 	 * @throws IdentityProviderException
 	 */
 	public function refreshAccessToken(): void {
-		$this->setAccessToken($this->getProvider()->getAccessToken(
-				'refresh_token',
-				['refresh_token' => $this->getCurrentAccessToken()->getRefreshToken()]
-		));
+		$this->renewTokenWithProvider();
 		$this->saveTokenToSession();
 	}
 

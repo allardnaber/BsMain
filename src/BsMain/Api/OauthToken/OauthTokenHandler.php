@@ -44,6 +44,16 @@ abstract class OauthTokenHandler {
 	protected function getFullConfig(): Configuration {
 		return $this->config;
 	}
+
+	/**
+	 * @throws IdentityProviderException
+	 */
+	protected function renewTokenWithProvider(): void {
+		$this->setAccessToken($this->getProvider()->getAccessToken(
+			'refresh_token',
+			['refresh_token' => $this->getCurrentAccessToken()->getRefreshToken()]
+		));
+	}
 	
 	public abstract function retrieveAccessToken(): void;
 

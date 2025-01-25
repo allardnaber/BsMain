@@ -72,7 +72,7 @@ class OauthDatabaseServiceTokenHandler extends OauthTokenHandler {
 				throw new BsAppRuntimeException('Could not find or read service token');
 			}
 		} catch (\PDOException $e) {
-			throw new BsAppRuntimeException('Error while reading service token: ' . $e->getMessage(), $e->getCode(), $e);
+			throw new BsAppRuntimeException('Error while reading service token: ' . $e->getMessage(), 0, $e);
 		}
 	}
 

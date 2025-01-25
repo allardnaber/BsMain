@@ -32,7 +32,7 @@ class OauthDatabaseServiceTokenHandler extends OauthTokenHandler {
 		$this->connection->beginTransaction();
 
 		try {
-			$token = $this->getAccessTokenFromDb();
+			$token = self::getAccessTokenFromDb($this->connection);
 			if ($token->getToken() === $this->getCurrentAccessToken()->getToken()) {
 				$this->renewTokenWithProvider();
 				$this->saveAccessTokenToDb($this->connection, $this->getCurrentAccessToken());

@@ -10,32 +10,34 @@ use League\OAuth2\Client\Token\AccessTokenInterface;
 use PDO;
 
 /**
- * Service token handler, with the token stored in the database..
+ * Service token handler, with the token stored in the database.
  */
-class OauthDatabaseServiceTokenHandler extends OauthTokenHandler {
+class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
+
+	private const DEFAULT_TABLE_NAME = 'service_token';
 
 	private PDO $connection;
-
-	private const TABLE_NAME = 'service_token';
+	private string $tableName;
 
 	public function __construct(AbstractProvider $provider, Configuration $config) {
-		$this->connection = self::getDbConnection($config);
 		parent::__construct($provider, $config);
+		$this->connection = $this->getDbConnection();
+		$this->tableName = $config->getOptional('oauth2', 'serviceTokenTableName') ?? self::DEFAULT_TABLE_NAME;
 	}
 
 	public function retrieveAccessToken(): void {
-		$this->setAccessToken(self::getAccessTokenFromDb($this->connection));
+		$this->setAccessToken($this->getAccessTokenFromDb());
 	}
 
 	public function refreshAccessToken(): void {
-		self::optionallyCreateTable($this->connection);
+		$this->optionallyCreateTable();
 		$this->connection->beginTransaction();
 
 		try {
-			$token = self::getAccessTokenFromDb($this->connection);
+			$token = $this->getAccessTokenFromDb();
 			if ($token->getToken() === $this->getCurrentAccessToken()->getToken()) {
 				$this->renewTokenWithProvider();
-				$this->saveAccessTokenToDb($this->connection, $this->getCurrentAccessToken());
+				$this->saveAccessTokenToDb($this->getCurrentAccessToken());
 			} else {
 				$this->setAccessToken($token);
 			}
@@ -46,8 +48,8 @@ class OauthDatabaseServiceTokenHandler extends OauthTokenHandler {
 		}
 	}
 
-	private static function getDbConnection(Configuration $config): PDO {
-		$dbConfig = $config->get('db');
+	private function getDbConnection(): PDO {
+		$dbConfig = $this->getFullConfig()->get('db');
 		return new PDO(
 			$dbConfig['dsn'],
 			$dbConfig['username'] ?? null,
@@ -55,41 +57,34 @@ class OauthDatabaseServiceTokenHandler extends OauthTokenHandler {
 			$dbConfig['pdo_options'] ?? null);
 	}
 
-	private static function optionallyCreateTable(PDO $connection): void {
-		$connection->exec(
-			sprintf('create table if not exists %1$s ( token text ); insert into %1$s values (\'\');', self::TABLE_NAME)
+	private function optionallyCreateTable(): void {
+		$this->connection->exec(
+			sprintf('create table if not exists %1$s ( token text ); insert into %1$s values (\'\');', $this->tableName)
 		);
 	}
 
-	private static function getAccessTokenFromDb(PDO $connection): AccessTokenInterface {
+	private function getAccessTokenFromDb(): AccessTokenInterface {
 		try {
-			$stmt = $connection->query(sprintf('select * from %s', self::TABLE_NAME), PDO::FETCH_ASSOC);
+			$stmt = $this->connection->query(sprintf('select * from %s', $this->tableName), PDO::FETCH_ASSOC);
 			if ($stmt !== false && $stmt->rowCount() > 0) {
 				$result = $stmt->fetch();
 				return new AccessToken(json_decode($result['token'], true));
 			}
 			else {
-				throw new BsAppRuntimeException('Could not find or read Brightspace service token');
+				throw new BsAppRuntimeException('Brightspace service account has not yet been configured or cannot be read.');
 			}
 		} catch (\PDOException $e) {
 			throw new BsAppRuntimeException('Brightspace service account has not yet been configured or cannot be read.', 0, $e);
 		}
 	}
 
-	private static function saveAccessTokenToDb(PDO $connection, AccessToken $accessToken): void {
-		$stmt = $connection->prepare(sprintf('update %s set token=?', self::TABLE_NAME));
+	private function saveAccessTokenToDb(AccessTokenInterface $accessToken): void {
+		$stmt = $this->connection->prepare(sprintf('update %s set token=?', $this->tableName));
 		$stmt->execute([ json_encode($accessToken->jsonSerialize()) ]);
 	}
 
-	/**
-	 * Registration of access token initialized externally
-	 * @param Configuration $config
-	 * @param AccessTokenInterface $token
-	 * @return void
-	 */
-	public static function saveAccessToken(Configuration $config, AccessTokenInterface $token): void {
-		$connection = self::getDbConnection($config);
-		self::optionallyCreateTable($connection);
-		self::saveAccessTokenToDb($connection, $token);
+	public function setServiceToken(AccessTokenInterface $serviceToken): void {
+		$this->optionallyCreateTable();
+		$this->saveAccessTokenToDb($serviceToken);
 	}
 }

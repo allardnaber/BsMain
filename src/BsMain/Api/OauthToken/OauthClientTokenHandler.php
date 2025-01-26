@@ -28,7 +28,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 		if (isset($_GET['code']) && isset($_GET['state']) && !isset($_SESSION[self::TOKEN_NAME])) {
 			$this->processInitialTokenResponse();
 		}
-		elseif (($sessionToken = self::getTokenFromSession()) !== null) {
+		elseif (($sessionToken = $this->getTokenFromSession()) !== null) {
 			$this->setAccessToken($sessionToken);
 		}
 		elseif (($debugToken = getenv('DEBUG_BS_TOKEN')) !== false) {
@@ -106,7 +106,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 		$_SESSION[self::TOKEN_NAME] = json_encode($this->getCurrentAccessToken()->jsonSerialize());
 	}
 
-	public static function getTokenFromSession(): ?AccessTokenInterface {
+	public function getTokenFromSession(): ?AccessTokenInterface {
 		if (isset($_SESSION[self::TOKEN_NAME])) {
 			$tokenArr = json_decode($_SESSION[self::TOKEN_NAME], true);
 			return new AccessToken($tokenArr);

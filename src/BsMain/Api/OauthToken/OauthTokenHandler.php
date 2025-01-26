@@ -16,13 +16,15 @@ abstract class OauthTokenHandler {
 	public function __construct(AbstractProvider $provider, Configuration $config) {
 		$this->provider = $provider;
 		$this->config = $config;
-		$this->retrieveAccessToken();
 	}
 
 	/**
 	 * @throws IdentityProviderException
 	 */
 	public function getAccessToken(): AccessTokenInterface {
+		if (!isset($this->accessToken)) {
+			$this->retrieveAccessToken();
+		}
 		if ($this->accessToken->hasExpired()) {
 			$this->refreshAccessToken();
 		}

@@ -3,14 +3,18 @@
 namespace BsMain\Api;
 
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
+use BsMain\Api\OauthToken\OauthDatabaseServiceTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
 use BsMain\Api\OauthToken\OauthTokenHandler;
 use BsMain\Configuration\Configuration;
 use BsMain\Data\WhoAmIUser;
+use BsMain\Exception\BsAppRuntimeException;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use League\OAuth2\Client\Provider\AbstractProvider;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
+use League\OAuth2\Client\Token\AccessTokenInterface;
 
 /**
  * Base class with utilities to interact with the Brightspace API.
@@ -29,18 +33,25 @@ class BsApiClient {
 		$this->createTokenHandler($useServiceAccount);
 	}
 
-	/** @noinspection SpellCheckingInspection */
+	/**
+	 * @noinspection SpellCheckingInspection
+	 * @throws IdentityProviderException
+	 */
 	public function whoami(): WhoAmIUser {
 		return WhoAmIUser::instance($this->provider->getResourceOwner($this->tokenHandler->getAccessToken())->toArray());
 	}
 	
 	private function createTokenHandler($useServiceAccount): void {
-		if ($useServiceAccount) {
-			$this->tokenHandler = new OauthServiceTokenHandler($this->provider, $this->config);
+		$this->tokenHandler = $useServiceAccount
+			? OauthServiceTokenHandler::get($this->provider, $this->config)
+			: new OauthClientTokenHandler($this->provider, $this->config);
+	}
+
+	public function registerServiceToken(AccessTokenInterface $serviceToken): void {
+		if (!$this->tokenHandler instanceof OauthServiceTokenHandler) {
+			throw new BsAppRuntimeException('Can only register tokens for service token handlers.');
 		}
-		else {
-			$this->tokenHandler = new OauthClientTokenHandler($this->provider, $this->config);
-		}
+		$this->tokenHandler->setServiceToken($serviceToken);
 	}
 
 	public function getFullConfig(): Configuration {

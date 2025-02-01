@@ -69,6 +69,7 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 				$result = $stmt->fetch();
 				$tokenArr = json_decode($result['token'] ?? '', true);
 				if ($tokenArr === null) {
+					error_log('TKN: ' . $result['token']);
 					throw new BsAppRuntimeException(
 						sprintf('Could not read service token: [%d] %s', json_last_error(), json_last_error_msg()));
 				}

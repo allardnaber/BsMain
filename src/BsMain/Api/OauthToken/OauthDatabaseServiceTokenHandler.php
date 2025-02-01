@@ -30,7 +30,6 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 	}
 
 	public function refreshAccessToken(): void {
-		$this->optionallyCreateTable();
 		$this->connection->beginTransaction();
 
 		try {
@@ -59,7 +58,7 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 
 	private function optionallyCreateTable(): void {
 		$this->connection->exec(
-			sprintf('create table if not exists %1$s ( token text ); insert into %1$s values (\'\');', $this->tableName)
+			sprintf('create table if not exists %1$s ( token text ); insert into %1$s (token) select \'\' where not exists (select * from %1$s)', $this->tableName)
 		);
 	}
 

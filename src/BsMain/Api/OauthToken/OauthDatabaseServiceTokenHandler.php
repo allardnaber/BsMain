@@ -67,7 +67,12 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 			$stmt = $this->connection->query(sprintf('select * from %s', $this->tableName), PDO::FETCH_ASSOC);
 			if ($stmt !== false && $stmt->rowCount() > 0) {
 				$result = $stmt->fetch();
-				return new AccessToken(json_decode($result['token'], true));
+				$tokenArr = json_decode($result['token'] ?? '', true);
+				if ($tokenArr === null) {
+					throw new BsAppRuntimeException(
+						sprintf('Could not read service token: [%d] %s', json_last_error(), json_last_error_msg()));
+				}
+				return new AccessToken($tokenArr);
 			}
 			else {
 				throw new BsAppRuntimeException('Brightspace service account has not yet been configured or cannot be read.');

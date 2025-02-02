@@ -33,14 +33,20 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 		$this->connection->beginTransaction();
 
 		try {
-			$token = $this->getAccessTokenFromDb();
-			if ($token->getToken() === $this->getCurrentAccessToken()->getToken()) {
+			// lock table to be sure we are the only one to refresh the service token
+			$this->connection->exec(sprintf('lock table %s in row exclusive mode', $this->tableName));
+
+			$storedToken = $this->getAccessTokenFromDb(true);
+			if ($storedToken->getToken() === $this->getCurrentAccessToken()->getToken()) {
+				// if the stored token has not been renewed yet, renew
 				$this->renewTokenWithProvider();
 				$this->saveAccessTokenToDb($this->getCurrentAccessToken());
+				$this->connection->commit();
 			} else {
-				$this->setAccessToken($token);
+				// otherwise, use the new token.
+				$this->setAccessToken($storedToken);
+				$this->connection->rollBack();
 			}
-			$this->connection->commit();
 		} catch (\PDOException $e) {
 			$this->connection->rollBack();
 			throw $e;
@@ -62,14 +68,13 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 		);
 	}
 
-	private function getAccessTokenFromDb(): AccessTokenInterface {
+	private function getAccessTokenFromDb(bool $withLock = false): AccessTokenInterface {
 		try {
-			$stmt = $this->connection->query(sprintf('select * from %s', $this->tableName), PDO::FETCH_ASSOC);
+			$stmt = $this->connection->query(sprintf('select * from %s %s', $this->tableName, $withLock ? ' for update' : ''), PDO::FETCH_ASSOC);
 			if ($stmt !== false && $stmt->rowCount() > 0) {
 				$result = $stmt->fetch();
 				$tokenArr = json_decode($result['token'] ?? '', true);
 				if ($tokenArr === null) {
-					error_log('TKN: ' . $result['token']);
 					throw new BsAppRuntimeException(
 						sprintf('Could not read service token: [%d] %s', json_last_error(), json_last_error_msg()));
 				}

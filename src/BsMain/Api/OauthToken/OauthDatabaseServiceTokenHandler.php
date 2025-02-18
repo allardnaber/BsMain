@@ -30,18 +30,23 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 	}
 
 	public function refreshAccessToken(): void {
-		$this->optionallyCreateTable();
 		$this->connection->beginTransaction();
 
 		try {
-			$token = $this->getAccessTokenFromDb();
-			if ($token->getToken() === $this->getCurrentAccessToken()->getToken()) {
+			// lock table to be sure we are the only one to refresh the service token
+			$this->connection->exec(sprintf('lock table %s in row exclusive mode', $this->tableName));
+
+			$storedToken = $this->getAccessTokenFromDb(true);
+			if ($storedToken->getToken() === $this->getCurrentAccessToken()->getToken()) {
+				// if the stored token has not been renewed yet, renew
 				$this->renewTokenWithProvider();
 				$this->saveAccessTokenToDb($this->getCurrentAccessToken());
+				$this->connection->commit();
 			} else {
-				$this->setAccessToken($token);
+				// otherwise, use the new token.
+				$this->setAccessToken($storedToken);
+				$this->connection->rollBack();
 			}
-			$this->connection->commit();
 		} catch (\PDOException $e) {
 			$this->connection->rollBack();
 			throw $e;
@@ -59,16 +64,21 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 
 	private function optionallyCreateTable(): void {
 		$this->connection->exec(
-			sprintf('create table if not exists %1$s ( token text ); insert into %1$s values (\'\');', $this->tableName)
+			sprintf('create table if not exists %1$s ( token text ); insert into %1$s (token) select \'\' where not exists (select * from %1$s)', $this->tableName)
 		);
 	}
 
-	private function getAccessTokenFromDb(): AccessTokenInterface {
+	private function getAccessTokenFromDb(bool $withLock = false): AccessTokenInterface {
 		try {
-			$stmt = $this->connection->query(sprintf('select * from %s', $this->tableName), PDO::FETCH_ASSOC);
+			$stmt = $this->connection->query(sprintf('select * from %s %s', $this->tableName, $withLock ? ' for update' : ''), PDO::FETCH_ASSOC);
 			if ($stmt !== false && $stmt->rowCount() > 0) {
 				$result = $stmt->fetch();
-				return new AccessToken(json_decode($result['token'], true));
+				$tokenArr = json_decode($result['token'] ?? '', true);
+				if ($tokenArr === null) {
+					throw new BsAppRuntimeException(
+						sprintf('Could not read service token: [%d] %s', json_last_error(), json_last_error_msg()));
+				}
+				return new AccessToken($tokenArr);
 			}
 			else {
 				throw new BsAppRuntimeException('Brightspace service account has not yet been configured or cannot be read.');

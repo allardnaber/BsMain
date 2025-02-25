@@ -25,6 +25,12 @@ class BsUsersApi extends BsResourceBaseApi {
 		}
 	}
 
+	public function getUserById(int $userId): UserData {
+		return $this->request(
+			$this->url('/lp/1.33/users/%d', $userId),
+			UserData::class, 'the user');
+	}
+
 	public function getUser(string $username): UserData {
 		return $this->request(
 			$this->url('/lp/1.33/users/?username=%s', $username),

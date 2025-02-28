@@ -35,6 +35,6 @@ namespace BsMain\Data;
 class Topic extends GenericObject {
 
 	protected function getAvailableFields(): array {
-		return [ 'TopicId', 'Identifier', 'TypeIdentifier', 'Title', 'SortOrder', 'IsHidden', 'IsBroken' ];
+		return [ 'TopicId', 'Identifier', 'TypeIdentifier', 'Title', 'SortOrder', 'IsHidden', 'IsBroken', 'ActivityType', 'Url' ];
 	}
 }

@@ -25,7 +25,7 @@ namespace BsMain\Data;
 class Module extends GenericObject {
 
 	protected function getAvailableFields(): array {
-		return [ 'ModuleId', 'Title', 'SortOrder', 'Modules', 'Topics', 'IsHidden' ];
+		return [ 'ModuleId', 'Title', 'SortOrder', 'Modules', 'Topics', 'IsHidden', 'DefaultPath' ];
 	}
 
 	protected function postCreationProcessing(): void {

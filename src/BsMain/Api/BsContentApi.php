@@ -35,4 +35,10 @@ class BsContentApi extends BsResourceBaseApi {
 			$this->url('/le/1.67/%d/content/order/objectId/%d?position=%s', $courseId, $objectId, $position),
 			null, 'content ordering', 'POST');
 	}
+
+	public function deleteContentModule(int $courseId, int $moduleId): void {
+		$this->request(
+			$this->url('/le/1.67/%d/content/modules/%d', $courseId, $moduleId), null, 'the content module', 'DELETE'
+		);
+	}
 }

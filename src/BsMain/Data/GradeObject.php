@@ -74,6 +74,6 @@ class GradeObject extends GenericObject {
 
 	protected function getAvailableFields(): array {
 		// only fields that are available for all grade item types
-		return [ 'Id', 'Name', 'ShortName', 'GradeType' ];
+		return [ 'Id', 'Name', 'ShortName', 'GradeType', 'IsHidden' ];
 	}
 }

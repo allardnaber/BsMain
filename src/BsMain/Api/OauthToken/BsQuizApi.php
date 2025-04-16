@@ -16,4 +16,10 @@ class BsQuizApi extends BsResourceBaseApi {
 			QuizReadData::class, true, 'list of quizzes');
 	}
 
+	public function deleteQuiz(int $courseId, int $quizId): void {
+		$this->request(
+			$this->url('/le/1.67/%d/quizzes/%d', $courseId, $quizId), null, 'the quiz', 'DELETE'
+		);
+	}
+
 }

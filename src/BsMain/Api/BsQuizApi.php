@@ -1,8 +1,7 @@
 <?php
 
-namespace BsMain\Api\OauthToken;
+namespace BsMain\Api;
 
-use BsMain\Api\BsResourceBaseApi;
 use BsMain\Data\QuizReadData;
 
 class BsQuizApi extends BsResourceBaseApi {

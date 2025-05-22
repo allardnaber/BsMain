@@ -73,6 +73,8 @@ namespace BsMain\Data;
 class QuizReadData extends GenericObject {
 
 	protected function getAvailableFields(): array {
-		return [ 'QuizId', 'Name', 'SortOrder', 'CategoryId', 'GradeItemId', 'IsActive' ];
+		return [
+			'QuizId', 'Name', 'SortOrder', 'Shuffle', 'Description', 'Header', 'Footer', 'CategoryId', 'GradeItemId',
+			'IsActive' ];
 	}
 }

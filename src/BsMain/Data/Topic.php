@@ -4,7 +4,7 @@ namespace BsMain\Data;
 
 /**
  * D2L returns:
- * see https://docs.valence.desire2learn.com/res/content.html#ToC.TableOfContents
+ * see https://docs.valence.desire2learn.com/res/content.html#Content.ContentObject / Topic
  * // Array of Topic blocks
                 {
                     "TopicId": <number:D2LID>,
@@ -30,11 +30,18 @@ namespace BsMain\Data;
                     "LastModifiedDate": <string:UTCDateTime>|null,
                     "StartDateAvailabilityType": <AVAILABILITY_T>|null,  // Available in LE's unstable contract
                     "EndDateAvailabilityType": <AVAILABILITY_T>|null  // Available in LE's unstable contract
+ 					"Description": { <composite:RichText> }|null
+ }
+ * //@ TODO discrepancy between https://docs.valence.desire2learn.com/res/content.html#Content.ContentObject / Topic
+ *          and https://docs.valence.desire2learn.com/res/content.html#ToC.TableOfContents / Topic
                 },
  */
 class Topic extends GenericObject {
 
 	protected function getAvailableFields(): array {
-		return [ 'TopicId', 'Identifier', 'TypeIdentifier', 'Title', 'SortOrder', 'IsHidden', 'IsBroken' ];
+		return [
+			'TopicId', 'Identifier', 'TypeIdentifier', 'Title', 'Bookmarked', 'Unread', 'Url', 'SortOrder',
+			'StartDateTime', 'EndDateTime', 'ActivityId', 'CompletionType', 'IsExempt', 'IsHidden', 'IsLocked',
+			'IsBroken', 'ToolId', 'ToolItemId', 'ActivityType', 'GradeItemId', 'LastModifiedDate', 'Description' ];
 	}
 }

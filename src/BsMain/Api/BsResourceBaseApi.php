@@ -15,8 +15,14 @@ abstract class BsResourceBaseApi {
 
 	private BsApiClient $client;
 
+	/**
+	 * @var string Brightspace base url, without "/d2l/api". Used to fix incomplete Next Page urls.
+	 */
+	private string $apiBaseUrl;
+
 	public function __construct(BsApiClient $client) {
 		$this->client = $client;
+		$this->apiBaseUrl = $this->client->getConfig('brightspace', 'url');
 	}
 
 	/**
@@ -100,13 +106,24 @@ abstract class BsResourceBaseApi {
 	 */
 	private function getObjectListPage(string $url, string $dataType, mixed $response): array {
 		$result = $response['Objects'];
-		// different from brightspace|api, because url already includes "/d2l/api"
-		$urlPrefix = $this->client->getConfig('brightspace', 'url');
 		while ($response['Next'] !== null) {
-			$response = json_decode($this->requestRaw($urlPrefix . $response['Next'], $dataType), true);
+			$response = json_decode($this->requestRaw($this->convertNextUrl($response['Next']), $dataType), true);
 			$result = array_merge($result, $response['Objects']);
 		}
 		return $result;
+	}
+
+	/**
+	 * Convert next url so it always contains full url. Brightspace returns three alternatives:
+	 *  - https://domain/d2l/api/nextEndpoint (documented behavior)
+	 *  - /d2l/api/nextEndpoint (behavior seen in Classlist))
+	 * @param string $nextUrl
+	 * @return string
+	 */
+	private function convertNextUrl(string $nextUrl): string {
+		return str_starts_with($nextUrl, 'https://')
+			? $nextUrl
+			: $this->apiBaseUrl . $nextUrl;
 	}
 
 	/**

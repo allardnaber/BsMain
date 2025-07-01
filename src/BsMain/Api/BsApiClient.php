@@ -2,6 +2,7 @@
 
 namespace BsMain\Api;
 
+use BsMain\Api\BsQuizApi;
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
 use BsMain\Api\OauthToken\OauthDatabaseServiceTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
@@ -118,5 +119,13 @@ class BsApiClient {
 
 	public function content(): BsContentApi {
 		return $this->getResourceApi('content', BsContentApi::class);
+	}
+
+	public function quizzes(): BsQuizApi {
+		return $this->getResourceApi('quiz', BsQuizApi::class);
+	}
+
+	public function grades(): BsGradesApi {
+		return $this->getResourceApi('grades', BsGradesApi::class);
 	}
 }

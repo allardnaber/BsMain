@@ -2,9 +2,10 @@
 
 namespace BsMain\Template;
 
+use Smarty;
 use SmartyException;
 
-class OutputTemplate extends \Smarty {
+class OutputTemplate extends Smarty {
 
 	private string $errorTemplate;
 	private string $errorSafariTemplate;
@@ -35,10 +36,17 @@ class OutputTemplate extends \Smarty {
 			mkdir ($path, 0770, true);
 		}
 	}
-	
+
+	/** @noinspection PhpRedundantCatchClauseInspection implementation is dynamically loaded, exception will be thrown
+	 * @noinspection PhpUnused
+	 */
 	public function setLanguage($cultureCode): void {
-		$lang = preg_replace('/[^a-z]/', '', strtolower(substr($cultureCode, 0, 2)));
-		$this->configLoad($lang . '.conf'); // silently fails if it does not exist
+		try {
+			$lang = preg_replace('/[^a-z]/', '', strtolower(substr($cultureCode, 0, 2)));
+			$this->configLoad($lang . '.conf');
+		} catch (SmartyException) {
+			// Preferred language is not available, falls back to default (english).
+		}
 	}
 
 	/**

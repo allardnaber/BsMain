@@ -135,27 +135,25 @@ class BsResourceBaseApi {
 
 
 	/**
+	 *
 	 * @param string $url
-	 * @param ?string $resultClass
+	 * @param class-string<T> $resultClass
 	 * @param ?string $dataType
 	 * @param string $method
 	 * @param string|null $jsonData
 	 * @param array $options
-	 * @return <T>|null Decoded associative array from raw response.
+	 * @return T Decoded associative array from raw response.
 	 * @throws IdentityProviderException
 	 */
 	public function request(
 		string $url,
-		?string $resultClass,
+		string $resultClass,
 		?string $dataType = 'object',
 		string $method = 'GET',
 		?string $jsonData = null,
 		array $options = []
-	): ?GenericObject {
+	): GenericObject {
 		$result = json_decode($this->requestRaw($url, $dataType, $method, $jsonData, $options), true);
-		if ($resultClass === null) {
-			return null;
-		}
 		$resultObj = $resultClass::instance($result);
 		if (!$resultObj instanceof GenericObject) {
 			throw new \InvalidArgumentException('Can only create subclasses of ' . GenericObject::class);

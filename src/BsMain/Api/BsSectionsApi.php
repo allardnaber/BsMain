@@ -8,7 +8,7 @@ use BsMain\Data\SectionDataCreate;
 use BsMain\Data\SectionDataFetch;
 use BsMain\Data\SectionSettingsDataCreate;
 use BsMain\Data\SectionSettingsDataFetch;
-use BsMain\Exception\BsAppApiException;
+use BsMain\Exception\BrightspaceApiException;
 
 class BsSectionsApi extends BsResourceBaseApi {
 
@@ -16,7 +16,7 @@ class BsSectionsApi extends BsResourceBaseApi {
 		try {
 			return $this->request($this->url('/lp/1.31/%d/sections/settings', $courseId),
 				SectionSettingsDataFetch::class, 'section settings');
-		} catch (BsAppApiException $ex) {
+		} catch (BrightspaceApiException $ex) {
 			if ($ex->getStatusCode() === 404) {
 				return null;
 			} else {

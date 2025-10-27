@@ -6,7 +6,7 @@ use BsMain\Data\CreateUserData;
 use BsMain\Data\Locale;
 use BsMain\Data\Role;
 use BsMain\Data\UserData;
-use BsMain\Exception\BsAppApiException;
+use BsMain\Exception\BrightspaceApiException;
 
 class BsUsersApi extends BsResourceBaseApi {
 
@@ -17,7 +17,7 @@ class BsUsersApi extends BsResourceBaseApi {
 		try {
 			return $this->requestArray($this->url('/lp/1.33/users/?externalEmail=%s', $email),
 				UserData::class, false, 'users');
-		} catch (BsAppApiException $e) {
+		} catch (BrightspaceApiException $e) {
 			if ($e->getStatusCode() === 404) {
 				return [];
 			}

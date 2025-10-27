@@ -2,6 +2,7 @@
 
 namespace BsMain\Api;
 
+use BsMain\Data\ApiEntity;
 use BsMain\Data\GenericObject;
 use BsMain\Exception\BrightspaceApiException;
 use BsMain\Exception\BrightspaceException;
@@ -15,19 +16,25 @@ use RuntimeException;
 /**
  * @template T extends GenericObject
  */
-class BsResourceBaseApi {
+class ApiRequest {
 
 	private const string API_PATH = 'd2l/api/';
-	private const array VERSIONS = [
-		'le' => '1.87'
-	];
 
-	private BsApiClient $client;
-	private readonly string $baseUrl;
 
-	public function __construct(BsApiClient $client) {
-		$this->client = $client;
-		$this->baseUrl = $client->getBrightspaceUrl();
+	private string $url;
+	private ?string $description = null;
+	//private ?string $classname = null;
+	private ?string $jsonData = null;
+	private array $options = [];
+
+	private string $baseUrl;
+
+	public function __construct(
+		private readonly RequestMethod $method,
+		private readonly string $classname,
+		private readonly BsApiClient $client
+	) {
+		$this->baseUrl = $this->client->getBrightspaceUrl();
 	}
 
 	/**
@@ -35,29 +42,66 @@ class BsResourceBaseApi {
 	 * and urlencodes the parameters.
 	 * @param string $url Base URL with placeholders
 	 * @param string[] $values The values to put in the placeholder
-	 * @return string The final URL to call.
+	 * @return self<T>
 	 */
-	protected function url(string $url, string ...$values): string {
+	public function url1(string $url, string ...$values): self {
 		$safeValues = array_map('urlencode', $values);
-		return vsprintf($this->baseUrl . self::API_PATH . $url, $safeValues);
+		$this->url = vsprintf($this->baseUrl . self::API_PATH . $url, $safeValues);
+		return $this;
 	}
 
 	/**
-	 * Append provided allowed parameters to the url.
+	 * Generates the full API url. This method accepts the standard printf format
+	 * and urlencodes the parameters.
+	 * @param string $url Base URL with placeholders
+	 * @param string[] $values The values to put in the placeholder
+	 * @return self<T>
+	 */
+	public function url(Service $service, string $url, string ...$values): self {
+		$base = $this->baseUrl . self::API_PATH . $service->name . '/';
+		if (!empty($service->value)) {
+			$base .= $service->value . '/';
+		}
+
+		$safeValues = array_map('urlencode', $values);
+
+
+		$this->url = vsprintf($base . $url, $safeValues);
+		return $this;
+	}
+
+	public function description(string $description): self {
+		$this->description = $description;
+		return $this;
+	}
+
+	/**
+	 * @param string $json
+	 * @return self<T>
+	 */
+	public function jsonBody(string $json): self {
+		$this->jsonData = $json;
+		return $this;
+	}
+
+	/**
+	 * Append provided parameter to the url, if value is not null.
 	 * @param string $url Base URL.
 	 * @param array $params Array with key/value pairs corresponding to the parameters to add.
 	 * @param array $allowed Array with the allowed parameters for the specific call.
-	 * @return string The URL with the allowed parameters appended.
+	 * @return self<T>
 	 */
-	protected function appendQueryParams(string $url, array $params, array $allowed): string {
-		$queryStart = str_contains($url, '?') ? '&' : '?';
-		$accepted = array_intersect_key($params, array_flip($allowed));
-		$paramsUrl = array_map(fn(string $k, mixed $v): string =>
-		sprintf('%s=%s', $k, urlencode($v)),
-			array_keys($accepted), array_values($accepted)
-		);
-		return $url . (count($accepted) === 0 ? '' : $queryStart . join('&', $paramsUrl));
+	public function param(string $name, ?string $value): self {
+		if (!isset($this->url)) {
+			throw new \RuntimeException('Set the request url before appending parameters.');
+		}
+		if ($value !== null) {
+			$queryStart = str_contains($this->url, '?') ? '&' : '?';
+			$this->url .= $queryStart . $name . '=' . urlencode($value);
+		}
+		return $this;
 	}
+
 
 	/**
 	 * Request full data set for calls that return paged results. This method
@@ -135,32 +179,25 @@ class BsResourceBaseApi {
 
 
 	/**
-	 * @param string $url
-	 * @param ?string $resultClass
-	 * @param ?string $dataType
-	 * @param string $method
-	 * @param string|null $jsonData
-	 * @param array $options
-	 * @return <T>|null Decoded associative array from raw response.
-	 * @throws IdentityProviderException
+	 * @return T|null Decoded associative array from raw response.
+
 	 */
-	public function request(
-		string $url,
-		?string $resultClass,
-		?string $dataType = 'object',
-		string $method = 'GET',
-		?string $jsonData = null,
-		array $options = []
-	): ?GenericObject {
-		$result = json_decode($this->requestRaw($url, $dataType, $method, $jsonData, $options), true);
-		if ($resultClass === null) {
-			return null;
+	public function fetch(): GenericObject|ApiEntity|null {
+		try {
+			$result = json_decode($this->requestRaw(), true);
+
+			if ($this->classname === null) {
+				echo 'classname unset;';
+				return null;
+			}
+			$resultObj = $this->classname::newInstance($result);
+			if (!$resultObj instanceof GenericObject && !$resultObj instanceof ApiEntity) {
+				throw new \InvalidArgumentException('Can only create subclasses of ' . GenericObject::class);
+			}
+			return $resultObj;
+		} catch (IdentityProviderException $e) {
+			throw new BrightspaceException($e->getMessage(), $e->getCode(), $e);
 		}
-		$resultObj = $resultClass::instance($result);
-		if (!$resultObj instanceof GenericObject) {
-			throw new \InvalidArgumentException('Can only create subclasses of ' . GenericObject::class);
-		}
-		return $resultObj;
 	}
 
 	/**
@@ -197,41 +234,31 @@ class BsResourceBaseApi {
 
 	/**
 	 * Perform the API request
-	 * @param string $url
-	 * @param string $dataType
-	 * @param string $method
-	 * @param string|null $jsonData
-	 * @param array $options
 	 * @return string Raw response from API
 	 * @throws BrightspaceException|IdentityProviderException
 	 */
-	protected function requestRaw(
-		string $url,
-		string $dataType = 'object',
-		string $method = 'GET',
-		?string $jsonData = null,
-		array $options = []
-	): string {
+	protected function requestRaw(): string {
 
 		try {
 			$request = $this->client->getProvider()->getAuthenticatedRequest(
-				$method, $url, $this->client->getTokenHandler()->getAccessToken(), $options
+				$this->method->name, $this->url, $this->client->getTokenHandler()->getAccessToken(), $this->options
 			);
 
-			if ($jsonData !== null) {
-				$options[RequestOptions::BODY] = $jsonData;
-				$options[RequestOptions::HEADERS]['Content-Type'] = 'application/json';
+			if ($this->jsonData !== null) {
+				$this->options[RequestOptions::BODY] = $this->jsonData;
+				$this->options[RequestOptions::HEADERS]['Content-Type'] = 'application/json';
 			}
-			$response = $this->client->getHttp()->send($request, $options);
+			$response = $this->client->getHttp()->send($request, $this->options);
 			return $response->getBody()->getContents();
 		} catch (RequestException $ex) {
 			$status = $ex->getResponse() !== null ? $ex->getResponse()->getStatusCode() : 0;
-			throw new BrightspaceApiException($method, $dataType, $status);
+			throw new BrightspaceApiException($this->method, $this->classname, $status);
 		} catch (GuzzleException $ex) {
 			throw new BrightspaceException($ex->getMessage());
 		}
 	}
 
+	//@todo
 	protected function addFileToMultipartOptions(string $visibleName, string $actualFilename, string $contentType, $options = []): array {
 		if (!isset($options[RequestOptions::MULTIPART])) {
 			$options[RequestOptions::MULTIPART] = [];
@@ -247,5 +274,7 @@ class BsResourceBaseApi {
 		];
 		return $options;
 	}
+
+
 
 }

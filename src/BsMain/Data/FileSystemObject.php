@@ -3,7 +3,7 @@
 namespace BsMain\Data;
 
 
-use BsMain\Exception\BsAppApiException;
+use BsMain\Exception\BrightspaceApiException;
 use BsMain\Exception\BsAppRuntimeException;
 
 /**

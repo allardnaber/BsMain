@@ -2,7 +2,7 @@
 
 namespace BsMain\Controller;
 
-use BsMain\Exception\BsAppApiException;
+use BsMain\Exception\BrightspaceApiException;
 use BsMain\Exception\BsAppRuntimeException;
 use BsMain\Exception\SafariOauthException;
 use ErrorException;
@@ -80,7 +80,7 @@ class ErrorHelper {
 			];
 		}
 
-		if ($this->exception instanceof BsAppApiException) {
+		if ($this->exception instanceof BrightspaceApiException) {
 			return [
 				sprintf($this->controller->getOutput()->getConfigVars('error_api_label'), $this->exception->getAppName()),
 				$this->translateChunkedError($this->exception),
@@ -136,7 +136,7 @@ class ErrorHelper {
 		}
 	}
 
-	private function translateChunkedError(BsAppApiException $ex): string {
+	private function translateChunkedError(BrightspaceApiException $ex): string {
 		$parts = explode('_', strtolower($ex->getMessage()));
 		for ($i = count($parts); $i >= 2; $i--) {
 			$key = implode('_', array_slice($parts, 0, $i));

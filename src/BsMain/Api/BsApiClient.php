@@ -2,41 +2,44 @@
 
 namespace BsMain\Api;
 
-use BsMain\Api\BsQuizApi;
+use allardnaber\OAuth2\Brightspace\Provider\Brightspace;
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
-use BsMain\Api\OauthToken\OauthDatabaseServiceTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
 use BsMain\Api\OauthToken\OauthTokenHandler;
-use BsMain\Configuration\Configuration;
 use BsMain\Data\WhoAmIUser;
-use BsMain\Exception\BsAppRuntimeException;
+use BsMain\Exception\BrightspaceAuthException;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
-use League\OAuth2\Client\Provider\AbstractProvider;
+use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
-use League\OAuth2\Client\Provider\GenericProvider;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 
 /**
  * Base class with utilities to interact with the Brightspace API.
  */
 class BsApiClient {
-	private Configuration $config;
-	private AbstractProvider $provider;
-	private ClientInterface $http;
+	private readonly Brightspace $provider;
+	private readonly ClientInterface $http;
 	private OauthTokenHandler $tokenHandler;
 	private array $resourceApis = [];
 
-	public function __construct(Configuration $config, $useServiceAccount = false) {
-		$this->config = $config;
-		$this->provider = new GenericProvider($config->get('oauth2'));
+	private readonly string $brightspaceUrl;
+	private readonly string $brightspaceApiUrl;
+
+
+	public function __construct(private readonly array $config, $useServiceAccount = false) {
+		$this->provider = new Brightspace($config);
 		$this->http = new Client();
 		$this->createTokenHandler($useServiceAccount);
+
+		$this->brightspaceUrl = $config['url'] . (str_ends_with($config['url'], '/') ? '' : '/');
+		$this->brightspaceApiUrl = $this->brightspaceUrl . 'd2l/api';
 	}
 
 	/**
 	 * @noinspection SpellCheckingInspection
 	 * @throws IdentityProviderException
+	 * @throws GuzzleException
 	 */
 	public function whoami(): WhoAmIUser {
 		return WhoAmIUser::instance($this->provider->getResourceOwner($this->tokenHandler->getAccessToken())->toArray());
@@ -50,27 +53,15 @@ class BsApiClient {
 
 	public function registerServiceToken(AccessTokenInterface $serviceToken): void {
 		if (!$this->tokenHandler instanceof OauthServiceTokenHandler) {
-			throw new BsAppRuntimeException('Can only register tokens for service token handlers.');
+			throw new BrightspaceAuthException('Can only register tokens for service token handlers.');
 		}
 		$this->tokenHandler->setServiceToken($serviceToken);
 	}
 
-	public function getFullConfig(): Configuration {
-		return $this->config;
-	}
-
-	public function getConfig(string ...$path): string|array {
-		return $this->config->get(...$path);
-	}
-
-	public function getConfigOptional(string ... $path): string|array|null {
-		return $this->config->getOptional(...$path);
-	}
-
 	/**
-	 * @return GenericProvider
+	 * @return Brightspace
 	 */
-	public function getProvider(): GenericProvider {
+	public function getProvider(): Brightspace {
 		return $this->provider;
 	}
 
@@ -92,39 +83,55 @@ class BsApiClient {
 		return $this->resourceApis[$api];
 	}
 
+	public function getBrightspaceUrl(): string {
+		return $this->brightspaceUrl;
+	}
+
+	public function getBrightspaceApiUrl(): string {
+		return $this->brightspaceApiUrl;
+	}
+
+	/** @noinspection PhpUnused */
 	public function users(): BsUsersApi {
 		return $this->getResourceApi('users', BsUsersApi::class);
 	}
 
-	/** @noinspection SpellCheckingInspection */
+	/** @noinspection SpellCheckingInspection, PhpUnused */
 	public function orgs(): BsOrgsApi {
 		return $this->getResourceApi('orgs', BsOrgsApi::class);
 	}
 
+	/** @noinspection PhpUnused */
 	public function courses(): BsCoursesApi {
 		return $this->getResourceApi('courses', BsCoursesApi::class);
 	}
-	
+
+	/** @noinspection PhpUnused */
 	public function enrollments(): BsEnrollmentsApi {
 		return $this->getResourceApi('enrollments', BsEnrollmentsApi::class);
 	}
 
+	/** @noinspection PhpUnused */
 	public function groups(): BsGroupsApi {
 		return $this->getResourceApi('groups', BsGroupsApi::class);
 	}
 
+	/** @noinspection PhpUnused */
 	public function sections(): BsSectionsApi {
 		return $this->getResourceApi('sections', BsSectionsApi::class);
 	}
 
+	/** @noinspection PhpUnused */
 	public function content(): BsContentApi {
 		return $this->getResourceApi('content', BsContentApi::class);
 	}
 
+	/** @noinspection PhpUnused */
 	public function quizzes(): BsQuizApi {
 		return $this->getResourceApi('quiz', BsQuizApi::class);
 	}
 
+	/** @noinspection PhpUnused */
 	public function grades(): BsGradesApi {
 		return $this->getResourceApi('grades', BsGradesApi::class);
 	}

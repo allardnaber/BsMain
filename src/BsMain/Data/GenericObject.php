@@ -2,13 +2,45 @@
 
 namespace BsMain\Data;
 
+use BsMain\Api\ApiRequest;
+use BsMain\Api\BsApiClient;
+use BsMain\Api\RequestMethod;
 use InvalidArgumentException;
 
 /**
  * Description of GenericObject
  */
+
 abstract class GenericObject {
 	protected array $data = [];
+
+	/**
+	 * @param BsApiClient $client
+	 * @return ApiRequest<static>
+	 */
+	public static function get(BsApiClient $client): ApiRequest {
+		return new ApiRequest(RequestMethod::GET, static::class, $client);
+	}
+
+
+	/**
+	 * @param BsApiClient $client
+	 * @return ApiRequest<static>
+	 */
+	public static function post(BsApiClient $client): ApiRequest {
+		return new ApiRequest(RequestMethod::POST, static::class, $client);
+	}
+
+
+	/**
+	 * @param BsApiClient $client
+	 * @return ApiRequest<static>
+	 */
+	public static function put(BsApiClient $client): ApiRequest {
+		return new ApiRequest(RequestMethod::PUT, static::class, $client);
+	}
+
+
 
 	/**
 	 * Creates an array of the specified object type from JSON that has already been converted into an associative array.

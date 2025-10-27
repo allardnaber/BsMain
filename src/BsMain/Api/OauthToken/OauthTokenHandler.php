@@ -2,21 +2,17 @@
 
 namespace BsMain\Api\OauthToken;
 
-use BsMain\Configuration\Configuration;
+use allardnaber\OAuth2\Brightspace\Provider\Brightspace;
+use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 
 abstract class OauthTokenHandler {
-	
-	private AbstractProvider $provider;
-	private Configuration $config;
+
 	private AccessTokenInterface $accessToken;
 	
-	public function __construct(AbstractProvider $provider, Configuration $config) {
-		$this->provider = $provider;
-		$this->config = $config;
-	}
+	public function __construct(private readonly Brightspace $provider, private readonly array $config) {}
 
 	/**
 	 * @throws IdentityProviderException
@@ -43,12 +39,12 @@ abstract class OauthTokenHandler {
 		return $this->provider;
 	}
 	
-	protected function getFullConfig(): Configuration {
+	protected function getConfig(): array {
 		return $this->config;
 	}
 
 	/**
-	 * @throws IdentityProviderException
+	 * @throws IdentityProviderException|GuzzleException
 	 */
 	protected function renewTokenWithProvider(): void {
 		$this->setAccessToken($this->getProvider()->getAccessToken(

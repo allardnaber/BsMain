@@ -2,9 +2,8 @@
 
 namespace BsMain\Api\OauthToken;
 
-use BsMain\Configuration\Configuration;
-use BsMain\Exception\BsAppRuntimeException;
-use League\OAuth2\Client\Provider\AbstractProvider;
+use allardnaber\OAuth2\Brightspace\Provider\Brightspace;
+use BsMain\Exception\BrightspaceAuthException;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 use PDO;
@@ -14,15 +13,15 @@ use PDO;
  */
 class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 
-	private const DEFAULT_TABLE_NAME = 'service_token';
+	private const string DEFAULT_TABLE_NAME = 'service_token';
 
 	private PDO $connection;
 	private string $tableName;
 
-	public function __construct(AbstractProvider $provider, Configuration $config) {
+	public function __construct(Brightspace $provider, array $config) {
 		parent::__construct($provider, $config);
 		$this->connection = $this->getDbConnection();
-		$this->tableName = $config->getOptional('oauth2', 'serviceTokenTableName') ?? self::DEFAULT_TABLE_NAME;
+		$this->tableName = $config['serviceTokenTableName'] ?? self::DEFAULT_TABLE_NAME;
 	}
 
 	public function retrieveAccessToken(): void {
@@ -54,12 +53,12 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 	}
 
 	private function getDbConnection(): PDO {
-		$dbConfig = $this->getFullConfig()->get('db');
+		$dbConfig = $this->getConfig();
 		return new PDO(
-			$dbConfig['dsn'],
-			$dbConfig['username'] ?? null,
-			$dbConfig['password'] ?? null,
-			$dbConfig['pdo_options'] ?? null);
+			$dbConfig['db_dsn'],
+			$dbConfig['db_username'] ?? null,
+			$dbConfig['db_password'] ?? null,
+			$dbConfig['db_pdo_options'] ?? null);
 	}
 
 	private function optionallyCreateTable(): void {
@@ -75,16 +74,16 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 				$result = $stmt->fetch();
 				$tokenArr = json_decode($result['token'] ?? '', true);
 				if ($tokenArr === null) {
-					throw new BsAppRuntimeException(
+					throw new BrightspaceAuthException(
 						sprintf('Could not read service token: [%d] %s', json_last_error(), json_last_error_msg()));
 				}
 				return new AccessToken($tokenArr);
 			}
 			else {
-				throw new BsAppRuntimeException('Brightspace service account has not yet been configured or cannot be read.');
+				throw new BrightspaceAuthException('Brightspace service account has not yet been configured or cannot be read.');
 			}
 		} catch (\PDOException $e) {
-			throw new BsAppRuntimeException('Brightspace service account has not yet been configured or cannot be read.', 0, $e);
+			throw new BrightspaceAuthException('Brightspace service account has not yet been configured or cannot be read.', 0, $e);
 		}
 	}
 

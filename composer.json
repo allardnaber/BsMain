@@ -11,18 +11,19 @@
     }
   ],
   "require": {
-    "composer/composer": "*",
-    "league/oauth2-client": "*",
-    "smarty/smarty": "4.*",
-    "csharpru/vault-php": "4.4.*",
-    "allardnaber/phpdbsessionhandler": "*@dev",
-    "ext-pdo": "*"
+	"php": ">8.4",
+	"ext-pdo": "*",
+	"allardnaber/oauth2-brightspacelms": "*@dev"
   },
   "repositories": [
     {
       "type": "vcs",
       "url": "https://github.com/allardnaber/PhpDbSessionHandler"
-    }
+    },
+	{
+	  "type": "vcs",
+	  "url": "https://github.com/allardnaber/oauth2-brightspacelms"
+	}
   ],
   "autoload": {
     "psr-4": {

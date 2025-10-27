@@ -1,12 +1,15 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
-namespace BsMain\Api;
+namespace BsMain\Api\Resource;
 
+use BsMain\Api\BsResourceBaseApi;
 use BsMain\Data\ContentObject;
 use BsMain\Data\ContentObjectData;
 use BsMain\Data\TableOfContents;
 
 class BsContentApi extends BsResourceBaseApi {
+
+
 
 	public function getCourseToc(int $courseId, ?int $moduleId = null): TableOfContents {
 		return $this->request(
@@ -15,6 +18,7 @@ class BsContentApi extends BsResourceBaseApi {
 				: $this->url('/le/1.67/%d/content/toc?moduleId=%d', $courseId, $moduleId),
 			TableOfContents::class, 'the table of contents');
 	}
+
 
 	public function addContentObject(int $courseId, int $parentModuleId, ContentObjectData $contentObject): ContentObject {
 		return $this->request(
@@ -32,13 +36,13 @@ class BsContentApi extends BsResourceBaseApi {
 	 */
 	public function setContentObjectOrder(int $courseId, int $objectId, string $position): void {
 		$this->request(
-			$this->url('/le/1.67/%d/content/order/objectId/%d?position=%s', $courseId, $objectId, $position),
+			$this->url('le/1.67/%d/content/order/objectId/%d?position=%s', $courseId, $objectId, $position),
 			null, 'content ordering', 'POST');
 	}
 
 	public function deleteContentModule(int $courseId, int $moduleId): void {
 		$this->request(
-			$this->url('/le/1.67/%d/content/modules/%d', $courseId, $moduleId), null, 'the content module', 'DELETE'
+			$this->url('le/1.67/%d/content/modules/%d', $courseId, $moduleId), null, 'the content module', 'DELETE'
 		);
 	}
 
@@ -48,6 +52,6 @@ class BsContentApi extends BsResourceBaseApi {
 	 * @return string The raw contents of the specified file
 	 */
 	public function getContentFile(int $courseId, int $topicId): string {
-		return $this->requestRaw($this->url('/le/1.51/%d/content/topics/%d/file', $courseId, $topicId), 'the file');
+		return $this->requestRaw($this->url('le/1.51/%d/content/topics/%d/file', $courseId, $topicId), 'the file');
 	}
 }

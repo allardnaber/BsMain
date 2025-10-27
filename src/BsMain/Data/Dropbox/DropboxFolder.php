@@ -1,6 +1,8 @@
 <?php
 
-namespace BsMain\Data;
+namespace BsMain\Data\Dropbox;
+
+use BsMain\Data\GenericObject;
 
 /**
  * D2L returns:
@@ -62,6 +64,6 @@ namespace BsMain\Data;
 class DropboxFolder extends GenericObject {
 
 	protected function getAvailableFields(): array {
-		return [ 'Id', 'CategoryId', 'Name', 'DropboxType', 'TotalUsers', 'TotalUsersWithSubmissions', 'TotalUsersWithFeedback' ];
+		return [ 'Id', 'CategoryId', 'Name', 'DropboxType', 'SubmissionType', 'TotalUsers', 'TotalUsersWithSubmissions', 'TotalUsersWithFeedback' ];
 	}
 }

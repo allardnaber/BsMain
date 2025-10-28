@@ -34,22 +34,37 @@ class ResumableFileUploader {
 		$this->initiateUpload($initiateUrl, $visibleName, $mimeType, $localFileName);
 	}
 
-	private function initiateUpload(string $initiateUrl, string $visibleName, string $mimeType, string $localFileName): void {
+	/**
+	 * Initiates the file upload and return the associated file upload key.
+	 * @param string $initiateUrl
+	 * @param string $visibleName
+	 * @param string $mimeType
+	 * @param string $localFileName
+	 * @return string File key to be used for the uploading process
+	 */
+	private function initiateUpload(string $initiateUrl, string $visibleName, string $mimeType, string $localFileName): string {
 		$filesize = filesize($localFileName);
 		if ($filesize === false) {
 			throw new \RuntimeException(sprintf('File size for local file %s could not be determined in preparation of upload.', $localFileName));
 		}
-		$response = $this->api->requestRaw($initiateUrl, 'file upload', 'POST', null, [
-			RequestOptions::HEADERS => [
-				'X-Upload-Content-Type' => $mimeType,
-				'X-Upload-Content-Length' => $filesize,
-				'X-Upload-File-Name' => $visibleName
-			]
-		]);
-		print_r($response);
+
+		// Should return a response with a header like:
+		// Location = [ /d2l/upload/m8zFEpk6Lr]    (array with single value)
+		$response = $this->api->requestRaw($initiateUrl, 'file upload', 'POST', null,
+			[
+				RequestOptions::HEADERS => [
+					'X-Upload-Content-Type' => $mimeType,
+					'X-Upload-Content-Length' => $filesize,
+					'X-Upload-File-Name' => $visibleName
+				],
+				RequestOptions::ALLOW_REDIRECTS => false // to prevent following the Location header!
+			]);
+		$uploadPath = $response->getHeader('Location')[0] ?? '';
+		if (preg_match('!/([^/]+)$!', $uploadPath, $m)) {
+			return $m[1];
+		} else {
+			throw new \RuntimeException(sprintf('Received unexpected upload path "%s" for this upload action.', $uploadPath));
+		}
 	}
-
-
-
 
 }

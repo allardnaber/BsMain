@@ -19,7 +19,7 @@ class ResumableFileUploader extends BsResourceBaseApi {
 
 	public const int MAX_CHUNK_SIZE_KB = -1;
 
-	public function __construct(private BsApiClient $client) {
+	public function __construct(private readonly BsApiClient $client) {
 		parent::__construct($client);
 	}
 
@@ -40,7 +40,7 @@ class ResumableFileUploader extends BsResourceBaseApi {
 			throw new \RuntimeException(sprintf('File size for local file %s could not be determined in preparation of upload.', $localFileName));
 		}
 		$uploadPath = $this->initiateUpload($initiateUrl, $visibleName, $mimeType, $filesize, $localFileName);
-		$this->performUpload($uploadPath, $filesize, $localFileName);
+		$this->performUpload($uploadPath, $mimeType, $filesize, $localFileName);
 	}
 
 	/**

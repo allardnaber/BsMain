@@ -41,7 +41,7 @@ class BsAssignmentApi extends BsResourceBaseApi {
 	 */
 	public function addFeedbackAttachment(int $courseId, int $folderId, string $entityType, int $entityId, string $filename, string $localFileName): void {
 		$type = mime_content_type($localFileName);
-		$uploader = new ResumableFileUploader($this);
+		$uploader = new ResumableFileUploader($this->getClient());
 		$uploader->upload(
 			///d2l/api/le/(version)/(orgUnitId)/dropbox/folders/(folderId)/feedback/(entityType)/(entityId)/upload¶
 			$this->url('/le/1.75/%d/dropbox/folders/%d/feedback/%s/%d/upload', $courseId, $folderId, $entityType, $entityId),

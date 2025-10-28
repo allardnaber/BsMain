@@ -26,6 +26,10 @@ abstract class BsResourceBaseApi {
 		$this->apiBaseUrl = $this->client->getConfig('brightspace', 'url');
 	}
 
+	protected function getClient(): BsApiClient {
+		return $this->client;
+	}
+
 	/**
 	 * Generates the full API url. This method accepts the standard printf format
 	 * and urlencodes the parameters.

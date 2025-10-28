@@ -43,9 +43,8 @@ class BsAssignmentApi extends BsResourceBaseApi {
 		$type = mime_content_type($localFileName);
 		$uploader = new ResumableFileUploader($this->getClient());
 		$uploader->upload(
-			///d2l/api/le/(version)/(orgUnitId)/dropbox/folders/(folderId)/feedback/(entityType)/(entityId)/upload¶
 			$this->url('/le/1.75/%d/dropbox/folders/%d/feedback/%s/%d/upload', $courseId, $folderId, $entityType, $entityId),
-			$this->url('/'),
+			$this->url('/le/1.75/%d/dropbox/folders/%d/feedback/%s/%d/attach', $courseId, $folderId, $entityType, $entityId),
 			$filename, $type, $localFileName);
 	}
 

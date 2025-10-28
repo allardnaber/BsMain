@@ -2,9 +2,12 @@
 
 namespace BsMain\Data\Dropbox;
 
+use BsMain\Data\CompositeRichText;
 use BsMain\Data\GenericObject;
 
 /**
+ * PLEASE NOTE: Feedback is a {@see CompositeRichText} object, from which the Html property has the highest priority,
+ * Text is used if Html is omitted. This should have been CompositeRichTextInput, but that object type is silently ignored.
  * D2L expects:
  * see https://docs.valence.desire2learn.com/res/dropbox.html#Dropbox.DropboxFolder
  * {
@@ -17,6 +20,7 @@ use BsMain\Data\GenericObject;
  * "IsGraded": <boolean>,
  * "GradedSymbol": <string>|null
  * }
+ *
  */
 class DropboxFeedback extends GenericObject {
 

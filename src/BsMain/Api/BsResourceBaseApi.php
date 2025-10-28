@@ -135,7 +135,7 @@ abstract class BsResourceBaseApi {
 	 * @param array $options
 	 * @return mixed|null Decoded associative array from raw response.
 	 */
-	protected function request(
+	public function request(
 		string $url,
 		?string $resultClass,
 		?string $dataType = 'object',
@@ -164,7 +164,7 @@ abstract class BsResourceBaseApi {
 	 * @param array $options
 	 * @return array|null Decoded associative array from raw response.
 	 */
-	protected function requestArray(
+	public function requestArray(
 		string $url,
 		?string $resultClass,
 		bool $paged,
@@ -196,7 +196,7 @@ abstract class BsResourceBaseApi {
 	 * @return string Raw response from API
 	 * @throws BsAppRuntimeException
 	 */
-	protected function requestRaw(
+	public function requestRaw(
 		string $url,
 		string $dataType = 'object',
 		string $method = 'GET',
@@ -221,22 +221,6 @@ abstract class BsResourceBaseApi {
 		} catch (GuzzleException $ex) {
 			throw new BsAppRuntimeException($ex->getMessage());
 		}
-	}
-
-	protected function addFileToMultipartOptions(string $visibleName, string $actualFilename, string $contentType, $options = []): array {
-		if (!isset($options[RequestOptions::MULTIPART])) {
-			$options[RequestOptions::MULTIPART] = [];
-		}
-		$fileInfo = pathinfo($actualFilename);
-		$options[RequestOptions::MULTIPART][] = [
-			'name' => $visibleName,
-			'contents' => Utils::tryFopen($actualFilename, 'r'),
-			'filename' => $fileInfo['basename'],
-			'headers' => [
-				'Content-Type' => $contentType
-			]
-		];
-		return $options;
 	}
 
 }

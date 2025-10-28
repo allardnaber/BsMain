@@ -2,6 +2,7 @@
 
 namespace BsMain\Api;
 
+use BsMain\Api\Util\MultipartFileUploader;
 use BsMain\Data\CourseCreateCopyJobRequest;
 use BsMain\Data\CourseOffering;
 use BsMain\Data\CreateCopyJobResponse;
@@ -16,7 +17,7 @@ class BsCoursesApi extends BsResourceBaseApi {
 	}
 
 	public function importCourseContent(int $courseId, string $filename): JobToken {
-		$options = $this->addFileToMultipartOptions('file', $filename, 'application/zip');
+		$options = MultipartFileUploader::addFileToMultipartOptions('file', $filename, 'application/zip');
 		return $this->request(
 				$this->url('/le/1.51/import/%d/imports/', $courseId),
 				JobToken::class, 'the import job', 'POST', null, $options);

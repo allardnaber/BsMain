@@ -2,6 +2,7 @@
 
 namespace BsMain\Api;
 
+use BsMain\Api\Util\ResumableFileUploader;
 use BsMain\Data\Dropbox\DropboxFolder;
 use BsMain\Data\Dropbox\EntityDropbox;
 
@@ -27,6 +28,25 @@ class BsAssignmentApi extends BsResourceBaseApi {
 		return $this->requestArray(
 			$this->url('/le/1.75/%d/dropbox/folders/%d/submissions/paged/%s', $courseId, $folderId, $postfix),
 			EntityDropbox::class, true, 'list of submissions');
+	}
+
+	/**
+	 * @param int $courseId
+	 * @param int $folderId
+	 * @param string $entityType [user|group]
+	 * @param int $entityId
+	 * @param string $filename The filename to display
+	 * @param string $localFileName Local file to upload
+	 * @return void
+	 */
+	public function addFeedbackAttachment(int $courseId, int $folderId, string $entityType, int $entityId, string $filename, string $localFileName): void {
+		$type = mime_content_type($localFileName);
+		$uploader = new ResumableFileUploader($this);
+		$uploader->upload(
+			///d2l/api/le/(version)/(orgUnitId)/dropbox/folders/(folderId)/feedback/(entityType)/(entityId)/upload¶
+			$this->url('/le/1.75/%d/dropbox/folders/%d/feedback/%s/%d/upload', $courseId, $folderId, $entityType, $entityId),
+			$this->url('/'),
+			$filename, $type, $localFileName);
 	}
 
 }

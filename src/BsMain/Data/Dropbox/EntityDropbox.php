@@ -39,7 +39,7 @@ use BsMain\Data\GenericObject;
 class EntityDropbox extends GenericObject {
 
 	protected function getAvailableFields(): array {
-		return [ 'Entity', 'Status', 'Feedback', 'Submissions', 'CompletedDate' ];
+		return [ 'Entity', 'Status', 'Feedback', 'Submissions', 'CompletionDate' ];
 	}
 
 	protected function postCreationProcessing(): void {

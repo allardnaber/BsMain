@@ -6,8 +6,16 @@ use BsMain\Api\Util\ResumableFileUploader;
 use BsMain\Data\Dropbox\DropboxFeedback;
 use BsMain\Data\Dropbox\DropboxFolder;
 use BsMain\Data\Dropbox\EntityDropbox;
+use BsMain\Exception\BsAppRuntimeException;
 
 class BsAssignmentApi extends BsResourceBaseApi {
+
+	private function validateEntityType(string $entityType): void {
+		$lower = strtolower($entityType);
+		if ($lower !== 'user' && $lower !== 'group') {
+			throw new \InvalidArgumentException(sprintf('%s is not a valid entity type, only "user" and "group" are allowed.', $entityType));
+		}
+	}
 
 	/**
 	 * @param int $courseId
@@ -32,6 +40,7 @@ class BsAssignmentApi extends BsResourceBaseApi {
 	}
 
 	public function addFeedback(int $courseId, int $folderId, string $entityType, int $entityId, DropboxFeedback $feedback): void {
+		$this->validateEntityType($entityType);
 		$this->request(
 			$this->url('/le/1.75/%d/dropbox/folders/%d/feedback/%s/%d', $courseId, $folderId, $entityType, $entityId),
 			null, 'assignment feedback', 'POST', $feedback->getJson()
@@ -48,6 +57,7 @@ class BsAssignmentApi extends BsResourceBaseApi {
 	 * @return void
 	 */
 	public function addFeedbackAttachment(int $courseId, int $folderId, string $entityType, int $entityId, string $filename, string $localFileName): void {
+		$this->validateEntityType($entityType);
 		$type = mime_content_type($localFileName);
 		$uploader = new ResumableFileUploader($this->getClient());
 		$uploader->upload(

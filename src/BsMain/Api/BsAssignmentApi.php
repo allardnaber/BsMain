@@ -3,6 +3,7 @@
 namespace BsMain\Api;
 
 use BsMain\Api\Util\ResumableFileUploader;
+use BsMain\Data\Dropbox\DropboxFeedback;
 use BsMain\Data\Dropbox\DropboxFolder;
 use BsMain\Data\Dropbox\EntityDropbox;
 
@@ -28,6 +29,13 @@ class BsAssignmentApi extends BsResourceBaseApi {
 		return $this->requestArray(
 			$this->url('/le/1.75/%d/dropbox/folders/%d/submissions/paged/%s', $courseId, $folderId, $postfix),
 			EntityDropbox::class, true, 'list of submissions');
+	}
+
+	public function addFeedback(int $courseId, int $folderId, string $entityType, int $entityId, DropboxFeedback $feedback): void {
+		$this->request(
+			$this->url('/le/1.75/%d/dropbox/folders/%d/feedback/%s/%d', $courseId, $folderId, $entityType, $entityId),
+			null, 'assignment feedback', 'POST', $feedback->getJson()
+		);
 	}
 
 	/**

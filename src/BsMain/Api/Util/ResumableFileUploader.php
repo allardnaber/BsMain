@@ -12,11 +12,12 @@ use GuzzleHttp\RequestOptions;
  * {@see https://docs.valence.desire2learn.com/basic/fileupload.html#resumable-uploads}.
  *
  * Known usages:
- * - POST /d2l/api/le/(version)/(orgUnitId)/dropbox/folders/(folderId)/feedback/(entityType)/(entityId)/attach
+ * - POST /d2l/api/le/(version)/(orgUnitId)/dropbox/folders/(folderId)/feedback/(entityType)/(entityId)/[upload|attach]
  *      Upload feedback to an assignment submission.
  */
 class ResumableFileUploader extends BsResourceBaseApi {
 
+	// @todo implement chunked upload (current implementation uploads the file as a whole)
 	public const int MAX_CHUNK_SIZE_KB = -1;
 
 	public function __construct(private readonly BsApiClient $client) {
@@ -24,11 +25,12 @@ class ResumableFileUploader extends BsResourceBaseApi {
 	}
 
 	/**
-	 * @param string $initiateUrl URL to the API to initiate the upload
+	 * Uploads and attaches a file using the resumable file upload method.
+	 * @param string $initiateUrl URL to the API to initiate the upload.
 	 * @param string $attachUrl URL to the API to actually perform the upload.
-	 * @param string $visibleName
-	 * @param string $mimeType
-	 * @param string $localFileName The file name on the current system.
+	 * @param string $visibleName The filename to show in the user interface.
+	 * @param string $mimeType The file's mime type, see {@see mime_content_type}.
+	 * @param string $localFileName The file path on the local system that references the file to be uploaded.
 	 * @return void
 	 */
 	public function upload(string $initiateUrl, string $attachUrl, string $visibleName, string $mimeType, string $localFileName): void {
@@ -48,7 +50,8 @@ class ResumableFileUploader extends BsResourceBaseApi {
 	}
 
 	/**
-	 * Initiates the file upload and return the associated file upload key.
+	 * Acquires an upload key and returns the upload path that includes the file key.
+	 * {@see https://docs.valence.desire2learn.com/basic/fileupload.html#acquire-an-upload-key}
 	 * @param string $initiateUrl
 	 * @param string $visibleName
 	 * @param string $mimeType
@@ -65,15 +68,25 @@ class ResumableFileUploader extends BsResourceBaseApi {
 					'X-Upload-Content-Length' => $filesize,
 					'X-Upload-File-Name' => $visibleName
 				],
-				RequestOptions::ALLOW_REDIRECTS => false // to prevent following the Location header!
+				// to prevent following the Location header!
+				RequestOptions::ALLOW_REDIRECTS => false
 			]);
 		$uploadPath = $response->getHeader('Location')[0] ?? null;
 		if ($uploadPath === null) {
-			throw new \RuntimeException(sprintf('Received unexpected upload path "%s" for this upload action.', $uploadPath));
+			throw new \RuntimeException('Did not receive an upload location for the file upload.');
 		}
 		return $uploadPath;
 	}
 
+	/**
+	 * Performs the file upload.
+	 * {@see https://docs.valence.desire2learn.com/basic/fileupload.html#upload-file-data}
+	 * @param string $uploadPath The upload path that was acquired through {@see self::initiateUpload}.
+	 * @param string $mimeType
+	 * @param int $filesize
+	 * @param string $localFileName
+	 * @return void
+	 */
 	private function performUpload(string $uploadPath, string $mimeType, int $filesize, string $localFileName): void {
 		$domain = $this->client->getConfig('brightspace', 'url');
 		$url = $domain . $uploadPath;
@@ -88,6 +101,14 @@ class ResumableFileUploader extends BsResourceBaseApi {
 		);
 	}
 
+	/**
+	 * Attaches the upload to an LMS object.
+	 * {@see https://docs.valence.desire2learn.com/basic/fileupload.html#attach-upload-to-the-lms}
+	 * @param string $attachUrl
+	 * @param string $fileKey The file key, which is the last path segment of the uploadPath from {@see self::initiateUpload}.
+	 * @param string $visibleName
+	 * @return void
+	 */
 	private function attachUploadedFile(string $attachUrl, string $fileKey, string $visibleName): void {
 		$this->requestRaw($attachUrl, 'file attachment', 'POST', null,
 		[

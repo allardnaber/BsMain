@@ -91,7 +91,7 @@ class ResumableFileUploader extends BsResourceBaseApi {
 	private function attachUploadedFile(string $attachUrl, string $fileKey, string $visibleName): void {
 		$this->requestRaw($attachUrl, 'file attachment', 'POST', null,
 		[
-			RequestOptions::MULTIPART => [
+			RequestOptions::FORM_PARAMS => [
 				'fileKey' => $fileKey,
 				'fileName' => $visibleName
 			]

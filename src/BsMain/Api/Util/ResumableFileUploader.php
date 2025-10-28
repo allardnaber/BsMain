@@ -25,13 +25,13 @@ class ResumableFileUploader extends BsResourceBaseApi {
 
 	/**
 	 * @param string $initiateUrl URL to the API to initiate the upload
-	 * @param string $uploadUrl URL to the API to actually perform the upload.
+	 * @param string $attachUrl URL to the API to actually perform the upload.
 	 * @param string $visibleName
 	 * @param string $mimeType
 	 * @param string $localFileName The file name on the current system.
 	 * @return void
 	 */
-	public function upload(string $initiateUrl, string $uploadUrl, string $visibleName, string $mimeType, string $localFileName): void {
+	public function upload(string $initiateUrl, string $attachUrl, string $visibleName, string $mimeType, string $localFileName): void {
 		if (!is_readable($localFileName)) {
 			throw new \RuntimeException(sprintf('Local file %s is not readable and cannot be uploaded.', $localFileName));
 		}
@@ -39,8 +39,12 @@ class ResumableFileUploader extends BsResourceBaseApi {
 		if ($filesize === false) {
 			throw new \RuntimeException(sprintf('File size for local file %s could not be determined in preparation of upload.', $localFileName));
 		}
-		$uploadPath = $this->initiateUpload($initiateUrl, $visibleName, $mimeType, $filesize, $localFileName);
+		$uploadPath = $this->initiateUpload($initiateUrl, $visibleName, $mimeType, $filesize);
 		$this->performUpload($uploadPath, $mimeType, $filesize, $localFileName);
+
+		$pathTokens = explode('/', $uploadPath);
+		$fileKey = array_pop($pathTokens);
+		$this->attachUploadedFile($attachUrl, $fileKey, $visibleName);
 	}
 
 	/**
@@ -49,10 +53,9 @@ class ResumableFileUploader extends BsResourceBaseApi {
 	 * @param string $visibleName
 	 * @param string $mimeType
 	 * @param int $filesize
-	 * @param string $localFileName
 	 * @return string Path to upload the file to, which also contains the upload key.
 	 */
-	private function initiateUpload(string $initiateUrl, string $visibleName, string $mimeType, int $filesize, string $localFileName): string {
+	private function initiateUpload(string $initiateUrl, string $visibleName, string $mimeType, int $filesize): string {
 		// Should return a response with a header like:
 		// Location = [ /d2l/upload/m8zFEpk6Lr]    (array with single value)
 		$response = $this->requestRaw($initiateUrl, 'file upload', 'POST', null,
@@ -78,11 +81,21 @@ class ResumableFileUploader extends BsResourceBaseApi {
 			[
 				RequestOptions::HEADERS => [
 					'Content-Type' => $mimeType,
-					'Content-Range' => sprintf('bytes %d/%d', 0, $filesize)
+					'Content-Range' => sprintf('bytes %d-%d/%d', 0, $filesize - 1, $filesize)
 				],
 				RequestOptions::BODY => Utils::tryFopen($localFileName, 'r')
 			]
 		);
+	}
+
+	private function attachUploadedFile(string $attachUrl, string $fileKey, string $visibleName): void {
+		$this->requestRaw($attachUrl, 'file attachment', 'POST', null,
+		[
+			RequestOptions::MULTIPART => [
+				'fileKey' => $fileKey,
+				'fileName' => $visibleName
+			]
+		]);
 	}
 
 }

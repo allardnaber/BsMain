@@ -20,17 +20,17 @@ namespace BsMain\Data;
 		"CanSelfRegister": <boolean>  // Added with LP API v1.27
 	}
  */
-class CourseOffering extends GenericObject {
-	
-	protected function getAvailableFields(): array {
-		return [ 
-			'Identifier', 'Name', 'Code', 'IsActive', 'Path', 'StartDate', 'EndDate',
-			'CourseTemplate', 'Semester', 'Department', 'Description', 'CanSelfRegister'
-		];
-	}
+class CourseOffering extends ApiEntity {
 
-	public function getBrightspaceId(): int {
-		return $this->Identifier;
-	}
+	public string $Identifier;
+	public string $Name;
+	public string $Code;
+	public bool $IsActive;
+	public string $Path;
+	public ?string $StartDate;
+	public ?string $EndDate;
+	public TmpRichText $Description; // @todo
+	// @todo completef fields
 
+	public bool $CanSelfRegister;
 }

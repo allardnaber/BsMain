@@ -6,6 +6,10 @@ use allardnaber\OAuth2\Brightspace\Provider\Brightspace;
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
 use BsMain\Api\OauthToken\OauthTokenHandler;
+use BsMain\Api\Resource\ApiShell;
+use BsMain\Api\Resource\CourseApi;
+use BsMain\Api\Resource\EnrollmentApi;
+use BsMain\Api\Resource\QuizApi;
 use BsMain\Data\WhoAmIUser;
 use BsMain\Exception\BrightspaceAuthException;
 use GuzzleHttp\Client;
@@ -22,7 +26,15 @@ class BsApiClient {
 	private readonly ClientInterface $http;
 	private OauthTokenHandler $tokenHandler;
 	private array $resourceApis = [];
+	/**
+	 * @var ApiShell[]
+	 */
+	private array $nextGenApis = [];
 
+	/**
+	 * URL to brightspace environment that has no trailing slash
+	 * @var string
+	 */
 	private readonly string $brightspaceUrl;
 	private readonly string $brightspaceApiUrl;
 
@@ -32,8 +44,8 @@ class BsApiClient {
 		$this->http = new Client();
 		$this->createTokenHandler($useServiceAccount);
 
-		$this->brightspaceUrl = $config['url'] . (str_ends_with($config['url'], '/') ? '' : '/');
-		$this->brightspaceApiUrl = $this->brightspaceUrl . 'd2l/api';
+		$this->brightspaceUrl = str_ends_with($config['url'], '/') ? substr($config['url'], 0, -1) : $config['url'];
+		$this->brightspaceApiUrl = $this->brightspaceUrl . '/d2l/api';
 	}
 
 	/**
@@ -134,5 +146,24 @@ class BsApiClient {
 	/** @noinspection PhpUnused */
 	public function grades(): BsGradesApi {
 		return $this->getResourceApi('grades', BsGradesApi::class);
+	}
+
+	private function getNextGenApi(string $api, string $className): mixed {
+		if (!isset($this->nextGenApis[$api])) {
+			$this->nextGenApis[$api] = new $className($this);
+		}
+		return $this->nextGenApis[$api];
+	}
+
+	public function course(): CourseApi {
+		return $this->getNextGenApi('courses', CourseApi::class);
+	}
+
+	public function enrollment(): EnrollmentApi {
+		return $this->getNextGenApi('enrollments', EnrollmentApi::class);
+	}
+
+	public function quiz(): QuizApi {
+		return $this->getNextGenApi('quiz', QuizApi::class);
 	}
 }

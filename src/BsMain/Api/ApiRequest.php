@@ -30,7 +30,6 @@ class ApiRequest {
 	private string $url;
 	private ?string $description = null;
 	private ?string $jsonData = null;
-	private bool $paged = false;
 	private array $options = [];
 
 	public function __construct(
@@ -108,11 +107,6 @@ class ApiRequest {
 		return $this;
 	}
 
-	public function paged(bool $isPaged = true): self {
-		$this->paged = $isPaged;
-		return $this;
-	}
-
 	/**
 	 * Append provided query parameter to the url, if value is not null.
 	 * @param string $name
@@ -132,20 +126,20 @@ class ApiRequest {
 
 
 	/**
-	 * Request full data set for calls that return paged results. This method
-	 * handles both paged results types that Brightspace offers: paged result sets
-	 * and object list pages.
+	 * Request full data set for calls that return paged results. This method inspects the initial result set to see
+	 * if it is paged result set or a plain array. If it is paged, it will use the appropriate paging mechanism
+	 * (paged result sets or object list pages) to retrieve all pages.
 	 *
 	 * @return array Associative array with the decoded values of the full result set. Paging info not included.
 	 * @throws IdentityProviderException
 	 */
-	private function requestPaged(): array {
-		$response = $this->requestJsonDecoded();
-
-		if (isset($response['Items'])) {
-			return $this->getPagedResultSet($response);
-		} elseif (isset($response['Objects'])) {
-			return $this->getObjectListPage($response);
+	private function requestPagedIfRequired(array $jsonDecodedResponse): array {
+		if (array_is_list($jsonDecodedResponse)) {
+			return $jsonDecodedResponse;
+		} elseif (isset($jsonDecodedResponse['Items'])) {
+			return $this->getPagedResultSet($jsonDecodedResponse);
+		} elseif (isset($jsonDecodedResponse['Objects'])) {
+			return $this->getObjectListPage($jsonDecodedResponse);
 		} else {
 			throw new RuntimeException('Unknown paged type result from API. Items and Objects are both unspecified. ' .
 				'See https://docs.valence.desire2learn.com/basic/apicall.html#paged-data');
@@ -225,9 +219,11 @@ class ApiRequest {
 	 * @return T[] Decoded associative array from raw response.
 	 */
 	public function fetchArray(): array {
-		$result = $this->paged
+		// get initial data and verify if the result set is paged. If so, retrieve all pages.
+		$result = $this->requestPagedIfRequired($this->requestJsonDecoded());
+		/*$result = $this->paged
 			? $this->requestPaged()
-			: $this->requestJsonDecoded();
+			: $this->requestJsonDecoded();*/
 
 		// loop instead of map so we don't need to have the data in memory twice.
 		foreach ($result as $key => $value) {

@@ -19,7 +19,6 @@ class EnrollmentApi extends ApiShell {
 			->param('onlyShowShownInGrades', $this->boolToString($onlyShowShownInGrades))
 			->param('searchTerm', $searchTerm)
 			->param('roleId', $roleId)
-			->paged()
 			->fetchArray();
 	}
 

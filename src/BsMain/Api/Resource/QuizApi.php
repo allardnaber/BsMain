@@ -39,7 +39,6 @@ class QuizApi extends ApiShell {
 		return QuestionData::get($this->client)
 			->description('list of quiz questions')
 			->leUrl('%d/quizzes/%d/questions/', $courseId, $quizId)
-			->paged()
 			->fetchArray();
 	}
 
@@ -52,7 +51,6 @@ class QuizApi extends ApiShell {
 		return QuizAttemptData::get($this->client)
 			->description('list of attempts')
 			->leUrl('%d/quizzes/%d/attempts/', $courseId, $quizId)
-			->paged()
 			->fetchArray();
 	}
 

@@ -53,7 +53,6 @@ class CourseApi extends ApiShell {
 			->description('course file listing')
 			->lpUrl('%d/managefiles/' ,$courseId)
 			->param('path', $path)
-			->paged()
 			->fetchArray();
 	}
 }

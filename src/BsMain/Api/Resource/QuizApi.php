@@ -26,7 +26,7 @@ class QuizApi extends ApiShell {
 	public function getQuiz(int $courseId, int $quizId): QuizReadData {
 		return QuizReadData::get($this->client)
 			->description('quiz')
-			->leUrl('%d/quizzes/%d/', $courseId, $quizId)
+			->leUrl('%d/quizzes/%d', $courseId, $quizId)
 			->fetch();
 	}
 

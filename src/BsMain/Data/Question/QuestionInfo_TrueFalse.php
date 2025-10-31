@@ -2,7 +2,7 @@
 
 namespace BsMain\Data\Question;
 
-use BsMain\Data\Quiz\Enumeration_T;
+use BsMain\Data\Question\Enumeration_T;
 use BsMain\Data\RichText;
 
 /**

@@ -3,7 +3,7 @@
 namespace BsMain\Data\Question;
 
 use BsMain\Api\Fields\Attributes\ArrayOf;
-use BsMain\Data\Quiz\Enumeration_T;
+use BsMain\Data\Question\Enumeration_T;
 
 /**
  * @see https://docs.valence.desire2learn.com/res/quiz.html#Question.QuestionInfo / Multiple Choice.

@@ -1,6 +1,6 @@
 <?php
 
-namespace BsMain\Data\Quiz;
+namespace BsMain\Data\Question;
 
 /**
  * @see https://docs.valence.desire2learn.com/res/quiz.html#term-LATESUBMISSIONOPTION_T

@@ -2,8 +2,8 @@
 
 namespace BsMain\Data\Question;
 
-use BsMain\Data\Quiz\Enumeration_T;
-use BsMain\Data\Quiz\Style_T;
+use BsMain\Data\Question\Enumeration_T;
+use BsMain\Data\Question\Style_T;
 
 class QuestionInfo_MultiSelect extends QuestionInfo {
 

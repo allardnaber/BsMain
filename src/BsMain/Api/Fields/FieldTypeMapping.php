@@ -9,6 +9,7 @@ use ReflectionClass;
 use ReflectionIntersectionType;
 use ReflectionProperty;
 use ReflectionUnionType;
+use RuntimeException;
 
 class FieldTypeMapping {
 
@@ -27,6 +28,8 @@ class FieldTypeMapping {
 		foreach ($inputFields as $name => $value)  {
 			$outputFields[$name] = isset($this->fields[$name]) ? $this->fields[$name]->map($inputFields) : $value;
 		}
+
+		var_dump($outputFields);die();
 	}
 
 	private function collect(ReflectionClass $reflection): void {
@@ -36,7 +39,7 @@ class FieldTypeMapping {
 				continue;
 			}
 			if ($type instanceof ReflectionUnionType || $type instanceof ReflectionIntersectionType) {
-				throw new \RuntimeException(sprintf(
+				throw new RuntimeException(sprintf(
 					'Property %s of class %s has a union or intersection type, this is not supported. ' .
 					'Omit type or use mixed, and cast it in post processing through #onCreate().',
 					$reflection->getName(),
@@ -72,6 +75,12 @@ class FieldTypeMapping {
 			// single typed entity
 			elseif (is_subclass_of($type->getName(), ApiEntity::class)) {
 				$this->fields[$prop->getName()] = new EntityFieldMapper($prop->getName(), $type->getName());
+			}
+
+			else {
+				throw new RuntimeException(sprintf(
+					'Unable to create field mapper for %s of type %s. Does the data type implement %s?',
+					$prop->getName(), $type->getName(), ApiEntity::class));
 			}
 
 		}

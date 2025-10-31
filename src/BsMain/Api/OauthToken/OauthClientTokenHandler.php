@@ -31,7 +31,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 		elseif (($sessionToken = $this->getTokenFromSession()) !== null) {
 			$this->setAccessToken($sessionToken);
 		}
-		elseif (($debugToken = $_ENV['DEBUG_BS_TOKEN']) !== false) {
+		elseif (($debugToken = ($_ENV['DEBUG_BS_TOKEN'] ?? false)) !== false) {
 			$tokenArr = json_decode($debugToken, true);
 			$this->setAccessToken(new AccessToken($tokenArr));
 			$this->saveTokenToSession();

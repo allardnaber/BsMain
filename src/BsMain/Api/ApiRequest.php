@@ -90,6 +90,10 @@ class ApiRequest {
 		return $this->url($resultUrl, ...$values);
 	}
 
+	/**
+	 * @param string $description
+	 * @return self<T>
+	 */
 	public function description(string $description): self {
 		$this->description = $description;
 		return $this;

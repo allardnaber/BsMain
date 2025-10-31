@@ -3,8 +3,8 @@
 namespace BsMain\Api;
 
 use BsMain\Data\QuestionData;
-use BsMain\Data\QuizAttemptData;
-use BsMain\Data\QuizReadData;
+use BsMain\Data\Quiz\QuizAttemptData;
+use BsMain\Data\Quiz\QuizReadData;
 
 class BsQuizApi extends BsResourceBaseApi {
 

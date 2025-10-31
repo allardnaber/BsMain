@@ -3,10 +3,10 @@
 namespace BsMain\Api;
 
 use BsMain\Data\CourseCreateCopyJobRequest;
-use BsMain\Data\CourseOffering;
+use BsMain\Data\Course\CourseOffering;
 use BsMain\Data\CreateCopyJobResponse;
-use BsMain\Data\FileSystemObject;
-use BsMain\Data\GetImportJobResponse;
+use BsMain\Data\Course\FileSystemObject;
+use BsMain\Data\Course\GetImportJobResponse;
 use BsMain\Data\JobToken;
 
 class BsCoursesApi extends BsResourceBaseApi {

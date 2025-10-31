@@ -28,8 +28,6 @@ class FieldTypeMapping {
 		foreach ($inputFields as $name => $value)  {
 			$outputFields[$name] = isset($this->fields[$name]) ? $this->fields[$name]->map($inputFields) : $value;
 		}
-
-		var_dump($outputFields);die();
 	}
 
 	private function collect(ReflectionClass $reflection): void {

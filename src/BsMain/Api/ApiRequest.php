@@ -28,7 +28,7 @@ class ApiRequest {
 
 
 	private string $url;
-	private ?string $description = null;
+	private string $description = 'Brightspace data';
 	private ?string $jsonData = null;
 	private array $options = [];
 
@@ -252,7 +252,7 @@ class ApiRequest {
 			return $this->client->getHttp()->send($request, $this->options);
 		} catch (RequestException $ex) {
 			$status = $ex->getResponse() !== null ? $ex->getResponse()->getStatusCode() : 0;
-			throw new BrightspaceApiException($this->method, $this->classname ?? '(no data type)', $status);
+			throw new BrightspaceApiException($this->method, $this->description, $status);
 		} catch (GuzzleException $ex) {
 			throw new BrightspaceException($ex->getMessage());
 		}

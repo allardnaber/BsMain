@@ -4,7 +4,7 @@ namespace BsMain\Data\Question;
 
 use BsMain\Data\ApiEntity;
 
-class QuestionInfo_Answer extends ApiEntity {
+class QuestionInfo_MC_Answer extends ApiEntity {
 /**
  * {
  * "PartId": <number:D2LID>,

@@ -25,7 +25,10 @@ class QuizAttemptData extends ApiEntity {
 	public bool $AttemptEnforceTimeLimit;
 	public int $AttemptSubmissionTimeLimit;
 	public int $AttemptSubmissionGraceLimit;
-	public int $AttemptSubmissionLateTypeId;
+	public LateSubmissionOption_T $AttemptSubmissionLateTypeId;
+	/**
+	 * @var int Specifies the extended deadline (in minutes) for this attempt.
+	 */
 	public int $AttemptSubmissionLateData;
 	public bool $AttemptIsSynchronous;
 	public ?int $DeductionPercentage;

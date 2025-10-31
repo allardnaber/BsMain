@@ -2,6 +2,9 @@
 
 namespace BsMain\Data\Quiz;
 
+/**
+ * @see https://docs.valence.desire2learn.com/res/quiz.html#term-QUESTION_T
+ */
 enum Question_T: int {
 	case MultipleChoice = 1;
 	case TrueFalse = 2;

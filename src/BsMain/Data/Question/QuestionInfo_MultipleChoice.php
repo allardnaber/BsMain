@@ -3,28 +3,19 @@
 namespace BsMain\Data\Question;
 
 use BsMain\Api\Fields\Attributes\ArrayOf;
+use BsMain\Data\Quiz\Enumeration_T;
 
-class QuestionInfo_MultipleChoice extends QuestionInfo {
-/*
- * {
-   "Answers": [
-       {
-       "PartId": <number:D2LID>,
-       "Answer": { <composite:RichText> },
-       "AnswerFeedback": { <composite:RichText> },
-       "Weight": <number>
-       }, ...
-   ],
-   "Randomize": <boolean>,
-   "Enumeration": <number:ENUMERATION_T>
-}
+/**
+ * @see https://docs.valence.desire2learn.com/res/quiz.html#Question.QuestionInfo / Multiple Choice.
  */
+class QuestionInfo_MultipleChoice extends QuestionInfo {
 
 	/**
-	 * @var QuestionInfo_Answer[]
+	 * @var QuestionInfo_MC_Answer[]
 	 */
-	#[ArrayOf(QuestionInfo_Answer::class)]
+	#[ArrayOf(QuestionInfo_MC_Answer::class)]
 	public array $Answers;
 	public bool $Randomize;
-	public int $Enumeration;
+	public Enumeration_T $Enumeration;
+
 }

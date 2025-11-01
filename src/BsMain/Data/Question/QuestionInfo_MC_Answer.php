@@ -3,18 +3,11 @@
 namespace BsMain\Data\Question;
 
 use BsMain\Data\ApiEntity;
+use BsMain\Data\RichText;
 
 class QuestionInfo_MC_Answer extends ApiEntity {
-/**
- * {
- * "PartId": <number:D2LID>,
- * "Answer": { <composite:RichText> },
- * "AnswerFeedback": { <composite:RichText> },
- * "Weight": <number>
- * }, ...
- */
 	public int $PartId;
-	public mixed $Answer; // RichtText
-	public mixed $AnswerFeedback; // RichtText
+	public RichText $Answer;
+	public RichText $AnswerFeedback;
 	public float $Weight; //@todo float or int?
 }

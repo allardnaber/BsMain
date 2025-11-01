@@ -61,7 +61,7 @@ class FieldTypeMapping {
 			elseif (!empty($arrayOfAttribute) && $type->getName() === 'array') {
 				$attr = $arrayOfAttribute[0]->newInstance();
 				assert($attr instanceof ArrayOf);
-				$this->fields[$prop->getName()] = new EntityArrayFieldMapper($prop->getName(), $type->getName());
+				$this->fields[$prop->getName()] = new EntityArrayFieldMapper($prop->getName(), $attr->getClassName());
 			}
 
 			// built in types like string, int, etc.

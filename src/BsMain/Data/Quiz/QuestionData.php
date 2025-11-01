@@ -6,31 +6,28 @@ use BsMain\Api\Fields\Attributes\CustomMapper;
 use BsMain\Data\ApiEntity;
 use BsMain\Data\Question\QuestionInfo;
 use BsMain\Data\Question\QuestionInfoMapper;
+use BsMain\Data\RichText;
 
+/**
+ * see https://docs.valence.desire2learn.com/res/quiz.html#Quiz.QuestionData
+ */
 class QuestionData extends ApiEntity {
 
-	/**
-	 * {
-	 * "QuestionId": <number:D2LID>,
-	 * "QuestionTypeId": <number:QUESTION_T>,
-	 * "Name": <string>|null,
-	 * "QuestionText": { <composite:RichText> },
-	 * "Points": <number>,
-	 * "Difficulty": <number>,
-	 * "Bonus": <boolean>,
-	 * "Mandatory": <boolean>,
-	 * "Hint": { <composite:RichText> },
-	 * "Feedback": { <composite:RichText> },
-	 * "LastModified": <utcdatetime>,
-	 * "LastModifiedBy": <number:D2LID>|null,
-	 * "SectionId": <number:D2LID>,
-	 * "QuestionTemplateId": <number:D2LID>,
-	 * "QuestionTemplateVersionId": <number:D2LID>,
-	 * "QuestionInfo": { <composite:QuestionInfo> }
-	 * }
-	 */
 	public int $QuestionId;
 	public Question_T $QuestionTypeId;
+	public ?string $Name;
+	public RichText $QuestionText;
+	public float $Points; // not documented that it can be decimal
+	public int $Difficulty;
+	public bool $Bonus;
+	public bool $Mandatory;
+	public ?RichText $Hint; // not documented that it can be null
+	public ?RichText $Feedback; // not documented that it can be null
+	public string $LastModified; // @todo datetime
+	public ?int $LastModifiedBy;
+	public int $SectionId;
+	public int $QuestionTemplateId;
+	public int $QuestionTemplateVersionId;
 
 	#[CustomMapper(QuestionInfoMapper::class)]
 	public QuestionInfo $QuestionInfo;

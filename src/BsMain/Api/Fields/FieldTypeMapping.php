@@ -13,6 +13,9 @@ use RuntimeException;
 
 class FieldTypeMapping {
 
+	/**
+	 * @var FieldMapper[]
+	 */
 	private array $fields = [];
 
 	public function __construct(ReflectionClass $reflection) {
@@ -25,7 +28,7 @@ class FieldTypeMapping {
 	 * @param array $outputFields Field values mapped to the expected data types.
 	 */
 	public function mapFields(array $inputFields, array &$outputFields): void {
-		foreach ($inputFields as $name => $value)  {
+		foreach ($inputFields as $name => $value) {
 			$outputFields[$name] = isset($this->fields[$name]) ? $this->fields[$name]->map($inputFields) : $value;
 		}
 	}

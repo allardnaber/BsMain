@@ -30,32 +30,37 @@ abstract class ApiEntity implements JsonSerializable {
 	 */
 	private static array $newInstanceTemplates = [];
 
-	private static FieldTypeMapping $fieldTypes;
+	/**
+	 * @var FieldTypeMapping[]
+	 */
+	private static array $fieldTypeMappings = [];
 
 	public function __construct(?array $props = null) {
-
 		$reflection = new ReflectionClass(static::class);
-		if (!isset(self::$fieldTypes)) self::$fieldTypes = new FieldTypeMapping($reflection);
+		if (!isset(ApiEntity::$fieldTypeMappings[static::class])) {
+			ApiEntity::$fieldTypeMappings[static::class] = new FieldTypeMapping($reflection);
+		}
 		foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $prop) {
 			unset($this->{$prop->getName()});
 		}
 
-		if ($props !== null) {
-			self::$fieldTypes->mapFields($props, $this->__int_fields);
-			$this->onCreate();
-		}
+		self::initFields($this, $props);
 	}
 
 	public static function newInstance(?array $props = null): static {
-		if (!isset(self::$newInstanceTemplates[static::class])) {
-			self::$newInstanceTemplates[static::class] = new static(null);
+		if (!isset(ApiEntity::$newInstanceTemplates[static::class])) {
+			ApiEntity::$newInstanceTemplates[static::class] = new static();
 		}
-		$instance = clone self::$newInstanceTemplates[static::class];
+		$instance = clone ApiEntity::$newInstanceTemplates[static::class];
+		self::initFields($instance, $props);
+		return $instance;
+	}
+
+	private static function initFields(self $instance, ?array $props): void {
 		if ($props !== null) {
-			self::$fieldTypes->mapFields($props, $instance->__int_fields);
+			ApiEntity::$fieldTypeMappings[static::class]->mapFields($props, $instance->__int_fields);
 			$instance->onCreate();
 		}
-		return $instance;
 	}
 
 	/**

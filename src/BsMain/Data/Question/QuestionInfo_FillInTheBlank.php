@@ -11,5 +11,7 @@ class QuestionInfo_FillInTheBlank extends QuestionInfo {
 
 	#[ArrayOf(QuestionInfo_FITB_Text::class)]
 	public array $Texts;
+
+	#[ArrayOf(QuestionInfo_FITB_Blank::class)]
 	public array $Blanks;
 }

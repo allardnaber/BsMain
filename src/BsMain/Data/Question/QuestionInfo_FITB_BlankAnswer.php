@@ -7,7 +7,7 @@ use BsMain\Data\ApiEntity;
 class QuestionInfo_FITB_BlankAnswer extends ApiEntity {
 
 	public string $TextAnswer;
-	public int $Weight;
+	public float $Weight;
 	public int $EvaluationType; //@todo
 
 }

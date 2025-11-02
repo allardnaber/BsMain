@@ -26,6 +26,11 @@ class BsAssignmentApi extends BsResourceBaseApi {
 			DropboxFolder::class, false, 'list of assignments');
 	}
 
+	public function getAssignment(int $courseId, int $folderId): DropboxFolder {
+		return $this->request($this->url('/le/1.75/%d/dropbox/folders/%d', $courseId, $folderId),
+			DropboxFolder::class, 'the assignments');
+	}
+
 	/**
 	 * @param int $courseId
 	 * @param int $folderId

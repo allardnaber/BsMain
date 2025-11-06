@@ -1,16 +1,10 @@
-<?php
+<?php /** @noinspection PhpGetterAndSetterCanBeReplacedWithPropertyHooksInspection */
 
 namespace BsMain\Api;
 
 use BsMain\Data\ApiEntity;
-use BsMain\Exception\BrightspaceApiException;
-use BsMain\Exception\BrightspaceException;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\RequestOptions;
-use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
-use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 
 /**
@@ -23,9 +17,7 @@ class ApiRequest {
 		'le' => '1.88'
 	];
 
-	private readonly string $baseUrl;
-
-
+	private const string API_PREFIX = '/d2l/api';
 
 	private string $url;
 	private string $description = 'Brightspace data';
@@ -34,13 +26,11 @@ class ApiRequest {
 
 	public function __construct(
 		private readonly RequestMethod $method,
-		private readonly BsApiClient $client,
-		private readonly ?string $classname = null,
+		private readonly ?string $classname = null
 	) {
 		if ($this->classname !== null && !is_subclass_of($this->classname, ApiEntity::class)) {
 			throw new RuntimeException(sprintf('Class %s must be a subclass of ApiEntity.', $this->classname));
 		}
-		$this->baseUrl = $this->client->getBrightspaceUrl();
 	}
 
 	/**
@@ -85,7 +75,7 @@ class ApiRequest {
 	 * @return self<T>
 	 */
 	private function serviceUrl(string $service, string $url, string ...$values): self {
-		$resultUrl = join('/', [ $this->client->getBrightspaceApiUrl(), $service, self::API_VERSION[$service], $url ]);
+		$resultUrl = join('/', [ self::API_PREFIX, $service, self::API_VERSION[$service], $url ]);
 		return $this->url($resultUrl, ...$values);
 	}
 
@@ -124,159 +114,6 @@ class ApiRequest {
 		return $this;
 	}
 
-
-	/**
-	 * Request full data set for calls that return paged results. This method inspects the initial result set to see
-	 * if it is paged result set or a plain array. If it is paged, it will use the appropriate paging mechanism
-	 * (paged result sets or object list pages) to retrieve all pages.
-	 *
-	 * @return array Associative array with the decoded values of the full result set. Paging info not included.
-	 * @throws IdentityProviderException
-	 */
-	private function requestPagedIfRequired(array $jsonDecodedResponse): array {
-		if (array_is_list($jsonDecodedResponse)) {
-			return $jsonDecodedResponse;
-		} elseif (isset($jsonDecodedResponse['Items'])) {
-			return $this->getPagedResultSet($jsonDecodedResponse);
-		} elseif (isset($jsonDecodedResponse['Objects'])) {
-			return $this->getObjectListPage($jsonDecodedResponse);
-		} else {
-			throw new RuntimeException('Unknown paged type result from API. Items and Objects are both unspecified. ' .
-				'See https://docs.valence.desire2learn.com/basic/apicall.html#paged-data');
-		}
-	}
-
-	/**
-	 * Handle the Paged Result Set as described on
-	 * https://docs.valence.desire2learn.com/basic/apicall.html#Api.PagedResultSet
-	 * @param array $response The initial response for the first page.
-	 * @return array
-	 * @throws IdentityProviderException
-	 */
-	private function getPagedResultSet(array $response): array {
-		$result = $response['Items'];
-		while ($response['PagingInfo']['HasMoreItems']) {
-			$response = new self(RequestMethod::GET, $this->client)
-				->url($this->url)
-				->param('bookmark', $response['PagingInfo']['Bookmark'])
-				->requestJsonDecoded();
-			$result = array_merge($result, $response['Items']);
-		}
-		return $result;
-	}
-
-	/**
-	 * Handle the Object List Page as described on
-	 * https://docs.valence.desire2learn.com/basic/apicall.html#object-list-pages
-	 * @param array $response The initial response for the first page.
-	 * @return array
-	 * @throws IdentityProviderException
-	 */
-	private function getObjectListPage(array $response): array {
-		$result = $response['Objects'];
-		while ($response['Next'] !== null) {
-			$response = new self(RequestMethod::GET, $this->client)
-				->url($this->convertNextUrl($response['Next']))
-				->requestJsonDecoded();
-
-			$result = array_merge($result, $response['Objects']);
-		}
-		return $result;
-	}
-
-	/**
-	 * Convert next url so it always contains full url. Brightspace returns three alternatives:
-	 *  - https://domain/d2l/api/nextEndpoint (documented behavior)
-	 *  - /d2l/api/nextEndpoint (behavior seen in Classlist)
-	 * @param string $nextUrl
-	 * @return string
-	 */
-	private function convertNextUrl(string $nextUrl): string {
-		return (str_starts_with($nextUrl, 'https://') ? '' : $this->baseUrl) . $nextUrl;
-	}
-
-
-	/**
-	 *
-	 * @noinspection PhpDocSignatureInspection Because of generic type
-	 * @return T Decoded associative array from raw response.
-	 */
-	public function fetch(): ApiEntity {
-		try {
-			if ($this->classname === null) {
-				throw new RuntimeException('Cannot fetch entity for a request without a class name attached.');
-			}
-
-			$result = $this->requestJsonDecoded();
-			/** @noinspection PhpUndefinedMethodInspection */
-			return $this->classname::newInstance($result);
-		} catch (IdentityProviderException $e) {
-			throw new BrightspaceException($e->getMessage(), $e->getCode(), $e);
-		}
-	}
-
-	/**
-	 * @return T[] Decoded associative array from raw response.
-	 */
-	public function fetchArray(): array {
-		// get initial data and verify if the result set is paged. If so, retrieve all pages.
-		$result = $this->requestPagedIfRequired($this->requestJsonDecoded());
-		/*$result = $this->paged
-			? $this->requestPaged()
-			: $this->requestJsonDecoded();*/
-
-		// loop instead of map so we don't need to have the data in memory twice.
-		foreach ($result as $key => $value) {
-			/** @noinspection PhpUndefinedMethodInspection */
-			$result[$key] = $this->classname::newInstance($value);
-		}
-		return $result;
-	}
-
-	/**
-	 * Perform the API request
-	 * @return ResponseInterface Raw response from API
-	 * @throws BrightspaceException|IdentityProviderException
-	 */
-	protected function requestRaw(): ResponseInterface {
-
-		try {
-			$request = $this->client->getProvider()->getAuthenticatedRequest(
-				$this->method->name, $this->url, $this->client->getTokenHandler()->getAccessToken(), $this->options
-			);
-
-			if ($this->jsonData !== null) {
-				$this->options[RequestOptions::BODY] = $this->jsonData;
-				$this->options[RequestOptions::HEADERS]['Content-Type'] = 'application/json';
-			}
-			return $this->client->getHttp()->send($request, $this->options);
-		} catch (RequestException $ex) {
-			$status = $ex->getResponse() !== null ? $ex->getResponse()->getStatusCode() : 0;
-			throw new BrightspaceApiException($this->method, $this->description, $status);
-		} catch (GuzzleException $ex) {
-			throw new BrightspaceException($ex->getMessage());
-		}
-	}
-
-	/**
-	 * Perform the API request and get the response as a string.
-	 * @throws IdentityProviderException
-	 */
-	protected function requestString(): string {
-		$response = $this->requestRaw();
-		return $response->getBody()->getContents();
-	}
-
-	/**
-	 * Perform the API request and get the returned JSON decoded in an associative array.
-	 * @return array
-	 * @throws IdentityProviderException
-	 */
-	protected function requestJsonDecoded(): array {
-		$response = $this->requestRaw();
-		return json_decode($response->getBody()->getContents(), true);
-	}
-
 	//@todo
 	protected function addFileToMultipartOptions(string $visibleName, string $actualFilename, string $contentType, $options = []): array {
 		if (!isset($options[RequestOptions::MULTIPART])) {
@@ -293,6 +130,33 @@ class ApiRequest {
 		];
 		return $options;
 	}
+
+
+	public function getMethod(): RequestMethod {
+		return $this->method;
+	}
+
+	public function getClassname(): ?string {
+		return $this->classname;
+	}
+
+	public function getUrl(): string {
+		return $this->url;
+	}
+
+	public function getDescription(): string {
+		return $this->description;
+	}
+
+	public function getJsonData(): ?string {
+		return $this->jsonData;
+	}
+
+	public function getOptions(): array {
+		return $this->options;
+	}
+
+
 
 
 

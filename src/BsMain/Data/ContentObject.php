@@ -3,6 +3,7 @@
 namespace BsMain\Data;
 
 
+use BsMain\Api\ApiRequest;
 use BsMain\Exception\BrightspaceApiException;
 use BsMain\Exception\BsAppRuntimeException;
 
@@ -55,7 +56,7 @@ use BsMain\Exception\BsAppRuntimeException;
  * "AssociatedGradeItemIds": [<number:D2LID>, ...]  // Added with LMS v20.23.3
  * }
  */
-class ContentObject extends GenericObject {
+class ContentObject extends ApiEntity {
 
 	protected function getAvailableFields(): array {
 		return [

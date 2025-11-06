@@ -100,26 +100,23 @@ abstract class ApiEntity implements JsonSerializable {
 	}
 
 	/**
-	 * @param BsApiClient $client
 	 * @return ApiRequest<static>
 	 */
-	public static function get(BsApiClient $client): ApiRequest {
-		return new ApiRequest(RequestMethod::GET, $client, static::class);
+	public static function get(): ApiRequest {
+		return new ApiRequest(RequestMethod::GET, static::class);
 	}
 
 	/**
-	 * @param BsApiClient $client
 	 * @return ApiRequest<static>
 	 */
-	public static function post(BsApiClient $client): ApiRequest {
-		return new ApiRequest(RequestMethod::POST, $client, static::class);
+	public static function post(): ApiRequest {
+		return new ApiRequest(RequestMethod::POST, static::class);
 	}
 
 	/**
-	 * @param BsApiClient $client
 	 * @return ApiRequest<static>
 	 */
-	public static function put(BsApiClient $client): ApiRequest {
-		return new ApiRequest(RequestMethod::PUT, $client, static::class);
+	public static function put(): ApiRequest {
+		return new ApiRequest(RequestMethod::PUT, static::class);
 	}
 }

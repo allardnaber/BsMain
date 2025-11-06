@@ -10,16 +10,24 @@ use BsMain\Api\Resource\ApiShell;
 use BsMain\Api\Resource\CourseApi;
 use BsMain\Api\Resource\EnrollmentApi;
 use BsMain\Api\Resource\QuizApi;
+use BsMain\Data\ApiEntity;
 use BsMain\Data\WhoAmIUser;
+use BsMain\Exception\BrightspaceApiException;
 use BsMain\Exception\BrightspaceAuthException;
+use BsMain\Exception\BrightspaceException;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\RequestOptions;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessTokenInterface;
+use Psr\Http\Message\ResponseInterface;
+use RuntimeException;
 
 /**
  * Base class with utilities to interact with the Brightspace API.
+ * @template T extends ApiEntity
  */
 class BsApiClient {
 	private readonly Brightspace $provider;
@@ -102,6 +110,163 @@ class BsApiClient {
 	public function getBrightspaceApiUrl(): string {
 		return $this->brightspaceApiUrl;
 	}
+
+	/**
+	 * Request full data set for calls that return paged results. This method inspects the initial result set to see
+	 * if it is paged result set or a plain array. If it is paged, it will use the appropriate paging mechanism
+	 * (paged result sets or object list pages) to retrieve all pages.
+	 *
+	 * @return array Associative array with the decoded values of the full result set. Paging info not included.
+	 * @throws IdentityProviderException
+	 */
+	private function requestPagedIfRequired(ApiRequest $initialRequest, array $jsonDecodedResponse): array {
+		if (array_is_list($jsonDecodedResponse)) {
+			return $jsonDecodedResponse;
+		} elseif (isset($jsonDecodedResponse['Items'])) {
+			return $this->getPagedResultSet($initialRequest, $jsonDecodedResponse);
+		} elseif (isset($jsonDecodedResponse['Objects'])) {
+			return $this->getObjectListPage($jsonDecodedResponse);
+		} else {
+			throw new RuntimeException('Unknown paged type result from API. Items and Objects are both unspecified. ' .
+				'See https://docs.valence.desire2learn.com/basic/apicall.html#paged-data');
+		}
+	}
+
+	/**
+	 * Handle the Paged Result Set as described on
+	 * https://docs.valence.desire2learn.com/basic/apicall.html#Api.PagedResultSet
+	 * @param ApiRequest<T> $initialRequest
+	 * @param array $response The initial response for the first page.
+	 * @return array
+	 * @throws IdentityProviderException
+	 */
+	private function getPagedResultSet(ApiRequest $initialRequest, array $response): array {
+		$result = $response['Items'];
+		while ($response['PagingInfo']['HasMoreItems']) {
+			$subRequest = new ApiRequest(RequestMethod::GET)
+				->url($initialRequest->getUrl())
+				->param('bookmark', $response['PagingInfo']['Bookmark']);
+			$response = $this->requestJsonDecoded($subRequest);
+			$result = array_merge($result, $response['Items']);
+		}
+		return $result;
+	}
+
+	/**
+	 * Handle the Object List Page as described on
+	 * https://docs.valence.desire2learn.com/basic/apicall.html#object-list-pages
+	 * @param array $response The initial response for the first page.
+	 * @return array
+	 * @throws IdentityProviderException
+	 */
+	private function getObjectListPage(array $response): array {
+		$result = $response['Objects'];
+		while ($response['Next'] !== null) {
+			$subRequest = new ApiRequest(RequestMethod::GET)->url($response['Next']);
+			$response = $this->requestJsonDecoded($subRequest);
+
+			$result = array_merge($result, $response['Objects']);
+		}
+		return $result;
+	}
+
+	/**
+	 *
+	 * @noinspection PhpDocSignatureInspection Because of generic type
+	 * @param ApiRequest<T> $apiRequest
+	 * @return T Decoded associative array from raw response.
+	 */
+	public function fetch(ApiRequest $apiRequest): ApiEntity {
+		try {
+			if ($apiRequest->getClassname() === null) {
+				throw new RuntimeException('Cannot fetch entity for a request without a class name attached.');
+			}
+
+			$result = $this->requestJsonDecoded($apiRequest);
+			/** @noinspection PhpUndefinedMethodInspection */
+			return $apiRequest->getClassname()::newInstance($result);
+		} catch (IdentityProviderException $e) {
+			throw new BrightspaceException($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	 * @return T[]
+	 */
+
+	/**
+	 * @param ApiRequest<T> $apiRequest
+	 * @return T[] Decoded associative array from raw response.
+	 */
+	public function fetchArray(ApiRequest $apiRequest): array {
+		// get initial data and verify if the result set is paged. If so, retrieve all pages.
+		$response = $this->requestJsonDecoded($apiRequest);
+		$result = $this->requestPagedIfRequired($apiRequest, $response);
+
+		// loop instead of map so we don't need to have the data in memory twice.
+		foreach ($result as $key => $value) {
+			/** @noinspection PhpUndefinedMethodInspection */
+			$result[$key] = $apiRequest->getClassname()::newInstance($value);
+		}
+		return $result;
+	}
+
+	/**
+	 * Perform the API request
+	 * @param ApiRequest<T> $apiRequest
+	 * @return ResponseInterface Raw response from API
+	 * @throws BrightspaceException|IdentityProviderException
+	 */
+	protected function requestRaw(ApiRequest $apiRequest): ResponseInterface {
+		try {
+			$url = $apiRequest->getUrl();
+			if (!str_starts_with($url, 'https:')) {
+				$url = $this->brightspaceUrl . $url;
+			}
+			$options = $apiRequest->getOptions();
+
+			if ($apiRequest->getJsonData() !== null) {
+				$options[RequestOptions::BODY] = $apiRequest->getJsonData();
+				$options[RequestOptions::HEADERS]['Content-Type'] = 'application/json';
+			}
+			$request = $this->getProvider()->getAuthenticatedRequest(
+				$apiRequest->getMethod()->name, $url, $this->getTokenHandler()->getAccessToken(),
+				$options
+			);
+
+			return $this->http->send($request, $options);
+		} catch (RequestException $ex) {
+			$status = $ex->getResponse() !== null ? $ex->getResponse()->getStatusCode() : 0;
+			throw new BrightspaceApiException($apiRequest->getMethod(), $apiRequest->getDescription(), $status);
+		} catch (GuzzleException $ex) {
+			throw new BrightspaceException($ex->getMessage());
+		}
+	}
+
+	/**
+	 * Perform the API request and get the response as a string.
+	 * @param ApiRequest<T> $apiRequest
+	 * @return string
+	 * @throws IdentityProviderException
+	 */
+	protected function requestString(ApiRequest $apiRequest): string {
+		$response = $this->requestRaw($apiRequest);
+		return $response->getBody()->getContents();
+	}
+
+	/**
+	 * Perform the API request and get the returned JSON decoded in an associative array.
+	 * @param ApiRequest<T> $apiRequest
+	 * @return array
+	 * @throws IdentityProviderException
+	 */
+	protected function requestJsonDecoded(ApiRequest $apiRequest): array {
+		$response = $this->requestRaw($apiRequest);
+		return json_decode($response->getBody()->getContents(), true);
+	}
+
+
+
 
 	/** @noinspection PhpUnused */
 	public function users(): BsUsersApi {

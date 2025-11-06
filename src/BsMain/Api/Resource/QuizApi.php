@@ -17,17 +17,18 @@ class QuizApi extends ApiShell {
 	 * @return QuizReadData[]
 	 */
 	public function getAllQuizzes(int $courseId): array {
-		return QuizReadData::get($this->client)
+		return $this->client->fetchArray(
+			QuizReadData::get()
 			->description('list of quizzes')
 			->leUrl('%d/quizzes/', $courseId)
-			->fetchArray();
+		);
 	}
 
 	public function getQuiz(int $courseId, int $quizId): QuizReadData {
-		return QuizReadData::get($this->client)
+		return $this->client->fetch(
+			QuizReadData::get()
 			->description('quiz')
-			->leUrl('%d/quizzes/%d', $courseId, $quizId)
-			->fetch();
+			->leUrl('%d/quizzes/%d', $courseId, $quizId));
 	}
 
 	/**
@@ -36,10 +37,11 @@ class QuizApi extends ApiShell {
 	 * @return QuestionData[]
 	 */
 	public function getQuizQuestions(int $courseId, int $quizId): array {
-		return QuestionData::get($this->client)
+		return $this->client->fetchArray(
+			QuestionData::get()
 			->description('list of quiz questions')
 			->leUrl('%d/quizzes/%d/questions/', $courseId, $quizId)
-			->fetchArray();
+		);
 	}
 
 	/**
@@ -48,10 +50,11 @@ class QuizApi extends ApiShell {
  	 * @return QuizAttemptData[]
 	 */
 	public function getAllQuizAttempts(int $courseId, int $quizId): array {
-		return QuizAttemptData::get($this->client)
+		return $this->client->fetchArray(
+			QuizAttemptData::get()
 			->description('list of attempts')
 			->leUrl('%d/quizzes/%d/attempts/', $courseId, $quizId)
-			->fetchArray();
+		);
 	}
 
 	/*public function getQuizAttempt(int $courseId, int $quizId, int $userId) {

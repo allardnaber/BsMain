@@ -13,10 +13,11 @@ use BsMain\Data\Course\GetImportJobResponse;
 class CourseApi extends ApiShell {
 
 	public function getCourseOffering(int $courseId): CourseOffering {
-		return CourseOffering::get($this->client)
+		return $this->client->fetch(
+			CourseOffering::get()
 			->description('course offering')
 			->lpUrl('courses/%d', $courseId)
-			->fetch();
+		);
 	}
 
 	/*public function importCourseContent(int $courseId, string $filename): JobToken {
@@ -27,10 +28,11 @@ class CourseApi extends ApiShell {
 	}*/
 
 	public function getImportCourseContentJobStatus(int $courseId, string $jobToken): GetImportJobResponse {
-		return GetImportJobResponse::get($this->client)
+		return $this->client->fetch(
+			GetImportJobResponse::get()
 			->description('course content import status')
 			->leUrl('import/%d/imports/%s', $courseId, $jobToken)
-			->fetch();
+		);
 	}
 
 	/*public function copyCourse(int $targetCourseId, CourseCreateCopyJobRequest $request): CreateCopyJobResponse {
@@ -49,10 +51,11 @@ class CourseApi extends ApiShell {
 	 * @return FileSystemObject[]
 	 */
 	public function getCourseFileListing(int $courseId, ?string $path = null): array {
-		return FileSystemObject::get($this->client)
+		return $this->client->fetchArray(
+			FileSystemObject::get()
 			->description('course file listing')
 			->lpUrl('%d/managefiles/' ,$courseId)
 			->param('path', $path)
-			->fetchArray();
+		);
 	}
 }

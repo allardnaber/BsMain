@@ -8,7 +8,7 @@ use BsMain\Data\RichText;
 /**
  * Helper class for fields that have a {@see RichText} and a `IsDisplayed` component.
  */
-class HideableRichText extends ApiEntity {
+class _HideableRichText extends ApiEntity {
 
 	public RichText $Text;
 	public bool $IsDisplayed;

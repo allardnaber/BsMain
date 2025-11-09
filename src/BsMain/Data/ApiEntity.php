@@ -2,10 +2,7 @@
 
 namespace BsMain\Data;
 
-use BsMain\Api\ApiRequest;
-use BsMain\Api\BsApiClient;
 use BsMain\Api\Fields\FieldTypeMapping;
-use BsMain\Api\RequestMethod;
 use JsonSerializable;
 use ReflectionClass;
 use ReflectionProperty;
@@ -99,24 +96,4 @@ abstract class ApiEntity implements JsonSerializable {
 		return $this->__int_fields;
 	}
 
-	/**
-	 * @return ApiRequest<static>
-	 */
-	public static function get(): ApiRequest {
-		return new ApiRequest(RequestMethod::GET, static::class);
-	}
-
-	/**
-	 * @return ApiRequest<static>
-	 */
-	public static function post(): ApiRequest {
-		return new ApiRequest(RequestMethod::POST, static::class);
-	}
-
-	/**
-	 * @return ApiRequest<static>
-	 */
-	public static function put(): ApiRequest {
-		return new ApiRequest(RequestMethod::PUT, static::class);
-	}
 }

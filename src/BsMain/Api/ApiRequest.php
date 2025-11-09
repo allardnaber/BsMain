@@ -7,9 +7,6 @@ use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\RequestOptions;
 use RuntimeException;
 
-/**
- * @template T extends ApiEntity
- */
 class ApiRequest {
 
 	public const array API_VERSION = [
@@ -33,12 +30,17 @@ class ApiRequest {
 		}
 	}
 
+	public static function get(): self { return new ApiRequest(RequestMethod::GET); }
+	public static function post(): self { return new ApiRequest(RequestMethod::POST); }
+	public static function put(): self { return new ApiRequest(RequestMethod::PUT); }
+	public static function delete(): self { return new ApiRequest(RequestMethod::DELETE); }
+
 	/**
 	 * Generates the full API url. This method accepts the standard printf format
 	 * and url-encodes the parameters.
 	 * @param string $url Base URL with placeholders
 	 * @param string[] $values The values to put in the placeholder
-	 * @return self<T>
+	 * @return self
 	 */
 	public function url(string $url, string ...$values): self {
 		$safeValues = array_map('urlencode', $values);
@@ -50,7 +52,7 @@ class ApiRequest {
 	 * Generates a Learning Platform url with current version number included.
  	 * @param string $url
 	 * @param string ...$values
-	 * @return self<T>
+	 * @return self
 	 */
 	public function lpUrl(string $url, string ...$values): self {
 		return $this->serviceUrl('lp', $url, ...$values);
@@ -60,7 +62,7 @@ class ApiRequest {
 	 * Generates a Learning Environment url with current version number included.
 	 * @param string $url
 	 * @param string ...$values
-	 * @return self<T>
+	 * @return self
 	 */
 	public function leUrl(string $url, string ...$values): self {
 		return $this->serviceUrl('le', $url, ...$values);
@@ -72,7 +74,7 @@ class ApiRequest {
 	 * @param string $service
 	 * @param string $url
 	 * @param string ...$values
-	 * @return self<T>
+	 * @return self
 	 */
 	private function serviceUrl(string $service, string $url, string ...$values): self {
 		$resultUrl = join('/', [ self::API_PREFIX, $service, self::API_VERSION[$service], $url ]);
@@ -81,7 +83,7 @@ class ApiRequest {
 
 	/**
 	 * @param string $description
-	 * @return self<T>
+	 * @return self
 	 */
 	public function description(string $description): self {
 		$this->description = $description;
@@ -90,7 +92,7 @@ class ApiRequest {
 
 	/**
 	 * @param string $json
-	 * @return self<T>
+	 * @return self
 	 */
 	public function jsonBody(string $json): self {
 		$this->jsonData = $json;
@@ -101,7 +103,7 @@ class ApiRequest {
 	 * Append provided query parameter to the url, if value is not null.
 	 * @param string $name
 	 * @param string|null $value
-	 * @return self<T>
+	 * @return self
 	 */
 	public function param(string $name, ?string $value): self {
 		if (!isset($this->url)) {
@@ -155,9 +157,6 @@ class ApiRequest {
 	public function getOptions(): array {
 		return $this->options;
 	}
-
-
-
 
 
 }

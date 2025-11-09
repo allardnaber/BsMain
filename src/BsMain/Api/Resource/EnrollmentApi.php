@@ -2,6 +2,7 @@
 
 namespace BsMain\Api\Resource;
 
+use BsMain\Api\ApiRequest;
 use BsMain\Data\Enrollment\ClasslistUser;
 
 class EnrollmentApi extends ApiShell {
@@ -14,8 +15,8 @@ class EnrollmentApi extends ApiShell {
 	 * @return ClasslistUser[]
 	 */
 	public function getClasslist(int $courseId, ?bool $onlyShowShownInGrades = null, ?string $searchTerm = null, ?int $roleId = null): array {
-		return $this->client->fetchArray(
-			ClasslistUser::get()
+		return $this->client->fetchArray(ClasslistUser::class,
+			ApiRequest::get()
 			->leUrl('%d/classlist/paged/', $courseId)
 			->param('onlyShowShownInGrades', $this->boolToString($onlyShowShownInGrades))
 			->param('searchTerm', $searchTerm)

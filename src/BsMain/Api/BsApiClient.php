@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 namespace BsMain\Api;
 
@@ -171,42 +171,63 @@ class BsApiClient {
 	}
 
 	/**
-	 *
-	 * @noinspection PhpDocSignatureInspection Because of generic type
-	 * @param ApiRequest<T> $apiRequest
-	 * @return T Decoded associative array from raw response.
+	 * Execute an API request that does not return any data.
+	 * @param ApiRequest $apiRequest
+	 * @return void
 	 */
-	public function fetch(ApiRequest $apiRequest): ApiEntity {
+	public function execute(ApiRequest $apiRequest): void {
 		try {
-			if ($apiRequest->getClassname() === null) {
-				throw new RuntimeException('Cannot fetch entity for a request without a class name attached.');
-			}
-
-			$result = $this->requestJsonDecoded($apiRequest);
-			/** @noinspection PhpUndefinedMethodInspection */
-			return $apiRequest->getClassname()::newInstance($result);
+			$this->requestRaw($apiRequest);
 		} catch (IdentityProviderException $e) {
 			throw new BrightspaceException($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
 	/**
-	 * @return T[]
+	 * Execute an API request that returns a single entity.
+	 * @noinspection PhpDocSignatureInspection Because of generic type
+	 * @param class-string<T> $classname The classname of the resulting entity.
+	 * @param ApiRequest $apiRequest
+	 * @return T
 	 */
+	public function fetch(string $classname, ApiRequest $apiRequest): ApiEntity {
+		if (!is_subclass_of($classname, ApiEntity::class)) {
+			throw new RuntimeException(sprintf(
+				'Class %s does not extend ApiEntity and cannot be used to fetch data from the Brightspace API',
+				$classname));
+		}
+
+		try {
+			return $classname::newInstance($this->requestJsonDecoded($apiRequest));
+		} catch (IdentityProviderException $e) {
+			throw new BrightspaceException($e->getMessage(), $e->getCode(), $e);
+		}
+	}
 
 	/**
+	 * Execute an API request that returns a list of entities, potentially in a paged way.
+	 * @param class-string<T> $classname
 	 * @param ApiRequest<T> $apiRequest
 	 * @return T[] Decoded associative array from raw response.
 	 */
-	public function fetchArray(ApiRequest $apiRequest): array {
-		// get initial data and verify if the result set is paged. If so, retrieve all pages.
-		$response = $this->requestJsonDecoded($apiRequest);
-		$result = $this->requestPagedIfRequired($apiRequest, $response);
+	public function fetchArray(string $classname, ApiRequest $apiRequest): array {
+		if (!is_subclass_of($classname, ApiEntity::class)) {
+			throw new RuntimeException(sprintf(
+				'Class %s does not extend ApiEntity and cannot be used to fetch data from the Brightspace API',
+				$classname));
+		}
+
+		try {
+			// get initial data and verify if the result set is paged. If so, retrieve all pages.
+			$response = $this->requestJsonDecoded($apiRequest);
+			$result = $this->requestPagedIfRequired($apiRequest, $response);
+		} catch (IdentityProviderException $e) {
+			throw new BrightspaceException($e->getMessage(), $e->getCode(), $e);
+		}
 
 		// loop instead of map so we don't need to have the data in memory twice.
 		foreach ($result as $key => $value) {
-			/** @noinspection PhpUndefinedMethodInspection */
-			$result[$key] = $apiRequest->getClassname()::newInstance($value);
+			$result[$key] = $classname::newInstance($value);
 		}
 		return $result;
 	}
@@ -265,50 +286,40 @@ class BsApiClient {
 		return json_decode($response->getBody()->getContents(), true);
 	}
 
-
-
-
-	/** @noinspection PhpUnused */
+	
 	public function users(): BsUsersApi {
 		return $this->getResourceApi('users', BsUsersApi::class);
 	}
 
-	/** @noinspection SpellCheckingInspection, PhpUnused */
+	/** @noinspection SpellCheckingInspection */
 	public function orgs(): BsOrgsApi {
 		return $this->getResourceApi('orgs', BsOrgsApi::class);
 	}
 
-	/** @noinspection PhpUnused */
 	public function courses(): BsCoursesApi {
 		return $this->getResourceApi('courses', BsCoursesApi::class);
 	}
 
-	/** @noinspection PhpUnused */
 	public function enrollments(): BsEnrollmentsApi {
 		return $this->getResourceApi('enrollments', BsEnrollmentsApi::class);
 	}
 
-	/** @noinspection PhpUnused */
 	public function groups(): BsGroupsApi {
 		return $this->getResourceApi('groups', BsGroupsApi::class);
 	}
 
-	/** @noinspection PhpUnused */
 	public function sections(): BsSectionsApi {
 		return $this->getResourceApi('sections', BsSectionsApi::class);
 	}
 
-	/** @noinspection PhpUnused */
 	public function content(): BsContentApi {
 		return $this->getResourceApi('content', BsContentApi::class);
 	}
 
-	/** @noinspection PhpUnused */
 	public function quizzes(): BsQuizApi {
 		return $this->getResourceApi('quiz', BsQuizApi::class);
 	}
 
-	/** @noinspection PhpUnused */
 	public function grades(): BsGradesApi {
 		return $this->getResourceApi('grades', BsGradesApi::class);
 	}

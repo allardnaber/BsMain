@@ -2,6 +2,7 @@
 
 namespace BsMain\Api\Resource;
 
+use BsMain\Api\ApiRequest;
 use BsMain\Data\Course\CourseOffering;
 use BsMain\Data\Course\FileSystemObject;
 use BsMain\Data\Course\GetImportJobResponse;
@@ -13,8 +14,8 @@ use BsMain\Data\Course\GetImportJobResponse;
 class CourseApi extends ApiShell {
 
 	public function getCourseOffering(int $courseId): CourseOffering {
-		return $this->client->fetch(
-			CourseOffering::get()
+		return $this->client->fetch(CourseOffering::class,
+			ApiRequest::get()
 			->description('course offering')
 			->lpUrl('courses/%d', $courseId)
 		);
@@ -28,8 +29,8 @@ class CourseApi extends ApiShell {
 	}*/
 
 	public function getImportCourseContentJobStatus(int $courseId, string $jobToken): GetImportJobResponse {
-		return $this->client->fetch(
-			GetImportJobResponse::get()
+		return $this->client->fetch(GetImportJobResponse::class,
+			ApiRequest::get()
 			->description('course content import status')
 			->leUrl('import/%d/imports/%s', $courseId, $jobToken)
 		);
@@ -51,8 +52,8 @@ class CourseApi extends ApiShell {
 	 * @return FileSystemObject[]
 	 */
 	public function getCourseFileListing(int $courseId, ?string $path = null): array {
-		return $this->client->fetchArray(
-			FileSystemObject::get()
+		return $this->client->fetchArray(FileSystemObject::class,
+			ApiRequest::get()
 			->description('course file listing')
 			->lpUrl('%d/managefiles/' ,$courseId)
 			->param('path', $path)

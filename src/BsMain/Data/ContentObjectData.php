@@ -28,6 +28,7 @@ In file-type topics (TopicType value 1), this property should contain a new path
 class ContentObjectData extends GenericObject {
 
 	protected function getAvailableFields(): array {
-		return [ 'Description', 'ShortTitle', 'Title', 'Type', 'IsHidden', 'IsLocked' ];
+		return [ 'Title', 'ShortTitle', 'Type', 'TopicType', 'Url', 'StartDate', 'EndDate', 'DueDate', 'IsHidden', 'IsLocked',
+			'OpenAsExternalResource', 'MajorUpdate', 'MajorUpdateText', 'ResetCompletionTracking', 'Duration'];
 	}
 }

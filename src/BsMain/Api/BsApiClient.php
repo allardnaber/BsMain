@@ -132,4 +132,8 @@ class BsApiClient {
 	public function assignments(): BsAssignmentApi {
 		return $this->getResourceApi('assignments', BsAssignmentApi::class);
 	}
+
+	public function awards(): BsAwardsApi {
+		return $this->getResourceApi('awards', BsAwardsApi::class);
+	}
 }

@@ -2,17 +2,13 @@
 
 namespace BsMain\Data\Toc;
 
+use BsMain\Api\Fields\Attributes\ArrayOf;
 use BsMain\Data\ApiEntity;
 
 class TableOfContents extends ApiEntity {
 
-	/**
-	 * @var Module[]
-	 */
+	/** @var Module[] */
+	#[ArrayOf(Module::class)]
 	public array $Modules;
 
-	protected function onCreate(): void {
-		$this->Modules = array_map(fn($m) => Module::newInstance($m), $this->Modules);
-	}
 }
-

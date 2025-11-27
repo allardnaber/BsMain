@@ -45,19 +45,34 @@ abstract class ApiEntity implements JsonSerializable {
 	}
 
 	public static function newInstance(?array $props = null): static {
-		if (!isset(ApiEntity::$newInstanceTemplates[static::class])) {
-			ApiEntity::$newInstanceTemplates[static::class] = new static();
+		$subClass = static::getSubClass($props);
+		if ($subClass === null || $subClass === static::class) {
+			if (!isset(ApiEntity::$newInstanceTemplates[static::class])) {
+				ApiEntity::$newInstanceTemplates[static::class] = new static();
+			}
+			$instance = clone ApiEntity::$newInstanceTemplates[static::class];
+			self::initFields($instance, $props);
+			return $instance;
+		} else {
+			return $subClass::newInstance($props);
 		}
-		$instance = clone ApiEntity::$newInstanceTemplates[static::class];
-		self::initFields($instance, $props);
-		return $instance;
+	}
+
+	/**
+	 * Allows an entity to specify final subclass based on the object properties. The entity should override this method
+	 * and return the final subclass.
+	 * @param ?array $props
+	 * @return null|class-string<ApiEntity> Null if there is no subclass override, class name otherwise
+	 */
+	public static function getSubClass(?array $props): ?string {
+		return null;
 	}
 
 	private static function initFields(self $instance, ?array $props): void {
 		if ($props !== null) {
 			ApiEntity::$fieldTypeMappings[static::class]->mapFields($props, $instance->__int_fields);
-			$instance->onCreate();
 		}
+		$instance->onCreate();
 	}
 
 	/**
@@ -92,8 +107,14 @@ abstract class ApiEntity implements JsonSerializable {
 		$this->__int_dirty = [];
 	}
 
+	/**
+	 * The API requires all fields to be present, even if they are null. Build a blank array with all fields,
+	 * then apply values from the current instance.
+	 * @return array
+	 */
 	public function jsonSerialize(): array {
-		return $this->__int_fields;
+		$fields = ApiEntity::$fieldTypeMappings[$this::class]?->getFieldNames() ?? [];
+		return array_merge(array_fill_keys($fields, null), $this->__int_fields);
 	}
 
 }

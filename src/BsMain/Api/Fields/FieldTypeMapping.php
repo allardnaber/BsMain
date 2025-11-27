@@ -33,6 +33,13 @@ class FieldTypeMapping {
 		}
 	}
 
+	/**
+	 * @return string[]
+	 */
+	public function getFieldNames(): array {
+		return array_keys($this->fields);
+	}
+
 	private function collect(ReflectionClass $reflection): void {
 		foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $prop) {
 			$type = $prop->getType();

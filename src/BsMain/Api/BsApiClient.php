@@ -7,6 +7,7 @@ use BsMain\Api\OauthToken\OauthClientTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
 use BsMain\Api\OauthToken\OauthTokenHandler;
 use BsMain\Api\Resource\ApiShell;
+use BsMain\Api\Resource\ContentApi;
 use BsMain\Api\Resource\CourseApi;
 use BsMain\Api\Resource\EnrollmentApi;
 use BsMain\Api\Resource\QuizApi;
@@ -171,13 +172,14 @@ class BsApiClient {
 	}
 
 	/**
-	 * Execute an API request that does not return any data.
+	 * Perform an API request that does not return an entity or a list of entities. It may return nothing or raw data,
+	 * that can be retrieved through the returned Response object.
 	 * @param ApiRequest $apiRequest
-	 * @return void
+	 * @return ResponseInterface
 	 */
-	public function execute(ApiRequest $apiRequest): void {
+	public function execute(ApiRequest $apiRequest): ResponseInterface {
 		try {
-			$this->requestRaw($apiRequest);
+			return $this->requestRaw($apiRequest);
 		} catch (IdentityProviderException $e) {
 			throw new BrightspaceException($e->getMessage(), $e->getCode(), $e);
 		}
@@ -254,7 +256,6 @@ class BsApiClient {
 				$apiRequest->getMethod()->name, $url, $this->getTokenHandler()->getAccessToken(),
 				$options
 			);
-
 			return $this->http->send($request, $options);
 		} catch (RequestException $ex) {
 			$status = $ex->getResponse() !== null ? $ex->getResponse()->getStatusCode() : 0;
@@ -286,7 +287,6 @@ class BsApiClient {
 		return json_decode($response->getBody()->getContents(), true);
 	}
 
-	
 	public function users(): BsUsersApi {
 		return $this->getResourceApi('users', BsUsersApi::class);
 	}
@@ -312,10 +312,6 @@ class BsApiClient {
 		return $this->getResourceApi('sections', BsSectionsApi::class);
 	}
 
-	public function content(): BsContentApi {
-		return $this->getResourceApi('content', BsContentApi::class);
-	}
-
 	public function quizzes(): BsQuizApi {
 		return $this->getResourceApi('quiz', BsQuizApi::class);
 	}
@@ -329,6 +325,10 @@ class BsApiClient {
 			$this->nextGenApis[$api] = new $className($this);
 		}
 		return $this->nextGenApis[$api];
+	}
+
+	public function content(): ContentApi {
+		return $this->getNextGenApi('content', ContentApi::class);
 	}
 
 	public function course(): CourseApi {

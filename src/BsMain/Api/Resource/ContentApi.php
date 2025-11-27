@@ -10,11 +10,12 @@ use BsMain\Data\Content\ContentObject_Topic;
 use BsMain\Data\Content\ContentObjectData;
 use BsMain\Data\Content\ContentObjectData_Module;
 use BsMain\Data\Toc\TableOfContents;
+use BsMain\Exception\BrightspaceException;
 use Psr\Http\Message\StreamInterface;
 
 /**
  * API endpoints related to Course Offerings, {@see https://docs.valence.desire2learn.com/res/content.html}.<br>
- * Completeness: 11 / 51
+ * Completeness: 14 / 51
  */
 
 class ContentApi extends ApiShell {
@@ -185,5 +186,32 @@ class ContentApi extends ApiShell {
 				->param('title', $title)
 		);
 	}
-	
+
+	/**
+	 * Specify the position order of a content object with respect to its sibling objects.
+	 * Note that you can only use this action to arrange the order of content objects in a single generation (that is,
+	 * sibling content objects all with the same parent content module, or all at the root level).
+	 * @param int $courseId
+	 * @param int $objectId
+	 * @param string|int $position 'first', 'last' or the objectId to be placed after.
+	 * @return void
+	 */
+	public function setContentObjectOrder(int $courseId, int $objectId, string|int $position): void {
+		$positionVal = strtolower($position);
+		if (!preg_match('/^(first|last|[0-9]+)$/', $positionVal)) {
+			throw new BrightspaceException(sprintf(
+				'Invalid value "%s" for position: should be "first", "last" or the id of the object to follow.',
+				$position)
+			);
+		}
+		$this->client->execute(
+			ApiRequest::post()
+				->description('content object order')
+				->leUrl('%d/content/order/objectId/%d', $courseId, $objectId)
+				->param('position', $positionVal)
+		);
+	}
+
+
+
 }

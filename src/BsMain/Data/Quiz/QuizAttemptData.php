@@ -4,6 +4,7 @@ namespace BsMain\Data\Quiz;
 
 use BsMain\Data\ApiEntity;
 use BsMain\Data\RichText;
+use DateTimeInterface;
 
 /**
  * see https://docs.valence.desire2learn.com/res/quiz.html#Quiz.QuizAttemptData
@@ -15,13 +16,13 @@ class QuizAttemptData extends ApiEntity {
 	public int $UserId;
 	public int $AttemptNumber;
 	public ?float $Score;
-	public string $Started;
-	public ?string $Completed;
+	public DateTimeInterface $Started;
+	public ?DateTimeInterface $Completed;
 	public RichText $AttemptFeedback;
-	public ?string $FeedbackLastModified;
+	public ?DateTimeInterface $FeedbackLastModified;
 	public bool $IsPublished;
 	public bool $IsRetakeIncorrectOnly;
-	public ?string $AttemptDueDate;
+	public ?DateTimeInterface $AttemptDueDate;
 	public bool $AttemptEnforceTimeLimit;
 	public int $AttemptSubmissionTimeLimit;
 	public int $AttemptSubmissionGraceLimit;

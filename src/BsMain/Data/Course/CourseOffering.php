@@ -4,6 +4,7 @@ namespace BsMain\Data\Course;
 
 use BsMain\Data\ApiEntity;
 use BsMain\Data\RichText;
+use DateTimeInterface;
 
 /**
  *
@@ -16,8 +17,8 @@ class CourseOffering extends ApiEntity {
 	public string $Code;
 	public bool $IsActive;
 	public string $Path;
-	public ?string $StartDate;
-	public ?string $EndDate;
+	public ?DateTimeInterface $StartDate;
+	public ?DateTimeInterface $EndDate;
 	public ?BasicOrgUnit $CourseTemplate;
 	public ?BasicOrgUnit $Semester;
 	public ?BasicOrgUnit $Department;

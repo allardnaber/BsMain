@@ -5,6 +5,8 @@ namespace BsMain\Api\Fields;
 use BsMain\Api\Fields\Attributes\ArrayOf;
 use BsMain\Api\Fields\Attributes\CustomMapper;
 use BsMain\Data\ApiEntity;
+use DateTimeImmutable;
+use DateTimeInterface;
 use ReflectionClass;
 use ReflectionIntersectionType;
 use ReflectionProperty;
@@ -74,6 +76,12 @@ class FieldTypeMapping {
 			// built in types like string, int, etc.
 			elseif ($type->isBuiltin()) {
 				$this->fields[$prop->getName()] = new BuiltInFieldMapper($prop->getName(), $type->getName());
+			}
+
+			// date time field (supports DateTime, DateTimeImmutable or own subclasses of DateTimeInterface)
+			elseif (is_a($type->getName(), DateTimeInterface::class, true)) {
+				$classname = $type->getName() === DateTimeInterface::class ? DateTimeImmutable::class : $type->getName();
+				$this->fields[$prop->getName()] = new DateTimeMapper($prop->getName(), $classname);
 			}
 
 			elseif (enum_exists($type->getName())) {

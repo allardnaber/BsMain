@@ -3,6 +3,7 @@
 namespace BsMain\Data\Quiz;
 
 use BsMain\Data\ApiEntity;
+use DateTimeInterface;
 
 /**
  * Shared fields for {@see QuizData} and {@see QuizReadData}.
@@ -15,9 +16,9 @@ class _QuizData_Base extends ApiEntity {
 	public ?bool $AutoExportToGrades;
 	public ?int $GradeItemId;
 	public bool $IsAutoSetGraded;
-	public ?string $StartDate;
-	public ?string $EndDate;
-	public ?string $DueDate;
+	public ?DateTimeInterface $StartDate;
+	public ?DateTimeInterface $EndDate;
+	public ?DateTimeInterface $DueDate;
 	public bool $DisplayInCalendar;
 	public mixed $LateSubmissionInfo; /*": {
 		"LateSubmissionOption": <number:LATESUBMISSIONOPTION_T>,

@@ -6,6 +6,8 @@ use BsMain\Data\ApiEntity;
 use BsMain\Data\Content_T;
 use BsMain\Data\RichText;
 use BsMain\Exception\BrightspaceException;
+use DateTimeImmutable;
+use DateTimeInterface;
 
 /**
  * ContentObject is the combined object for modules and topics. Common properties are in this object, more specific
@@ -21,7 +23,7 @@ abstract class ContentObject extends ApiEntity {
 	public string $Title;
 	public string $ShortTitle;
 	public ?RichText $Description;
-	public ?string $LastModifiedDate;
+	public ?DateTimeInterface $LastModifiedDate;
 
 	public static function getSubClass(?array $props): ?string {
 		if ($props === null || !isset($props['Type'])) {

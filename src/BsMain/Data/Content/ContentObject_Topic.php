@@ -4,6 +4,7 @@ namespace BsMain\Data\Content;
 
 use BsMain\Data\ActivityType_T;
 use BsMain\Data\Topic_T;
+use DateTimeInterface;
 
 class ContentObject_Topic extends ContentObject {
 
@@ -11,9 +12,9 @@ class ContentObject_Topic extends ContentObject {
 	public Topic_T $TopicType;
 	public ?string $Url;
 
-	public ?string $StartDate; // @todo
-	public ?string $EndDate; // @todo
-	public ?string $DueDate; // @todo
+	public ?DateTimeInterface $StartDate;
+	public ?DateTimeInterface $EndDate;
+	public ?DateTimeInterface $DueDate;
 	public bool $IsBroken;
 	public ?bool $OpenAsExternalResource;
 	public bool $IsExempt;

@@ -7,6 +7,7 @@ use BsMain\Data\ApiEntity;
 use BsMain\Data\Question\QuestionInfo;
 use BsMain\Data\Question\QuestionInfoMapper;
 use BsMain\Data\RichText;
+use DateTimeInterface;
 
 /**
  * see https://docs.valence.desire2learn.com/res/quiz.html#Quiz.QuestionData
@@ -23,7 +24,7 @@ class QuestionData extends ApiEntity {
 	public bool $Mandatory;
 	public ?RichText $Hint; // not documented that it can be null
 	public ?RichText $Feedback; // not documented that it can be null
-	public string $LastModified; // @todo datetime
+	public DateTimeInterface $LastModified;
 	public ?int $LastModifiedBy;
 	public int $SectionId;
 	public int $QuestionTemplateId;

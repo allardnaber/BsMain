@@ -3,6 +3,7 @@
 namespace BsMain\Data\Enrollment;
 
 use BsMain\Data\ApiEntity;
+use DateTimeInterface;
 
 /**
  * {@see https://docs.valence.desire2learn.com/res/enroll.html#Enrollment.ClasslistUser}
@@ -18,7 +19,7 @@ class ClasslistUser extends ApiEntity {
 	public ?string $FirstName;
 	public ?string $LastName;
 	public ?int $RoleId;
-	public ?string $LastAccessed;
+	public ?DateTimeInterface $LastAccessed;
 	public bool $IsOnline;
 	public string $ClasslistRoleDisplayName;
 	public ?string $Pronouns;

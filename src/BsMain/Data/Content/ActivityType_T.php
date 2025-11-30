@@ -1,6 +1,6 @@
 <?php
 
-namespace BsMain\Data;
+namespace BsMain\Data\Content;
 
 /**
  * See https://docs.valence.desire2learn.com/res/content.html#term-ACTIVITYTYPE_T

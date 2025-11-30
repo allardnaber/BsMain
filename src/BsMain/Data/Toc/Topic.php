@@ -2,9 +2,10 @@
 
 namespace BsMain\Data\Toc;
 
-use BsMain\Data\ActivityType_T;
+use BsMain\Data\Content\ActivityType_T;
 use BsMain\Data\ApiEntity;
 use BsMain\Data\Availability_T;
+use BsMain\Data\Content\ContentCompletionType_T;
 use BsMain\Data\RichText;
 use DateTimeInterface;
 

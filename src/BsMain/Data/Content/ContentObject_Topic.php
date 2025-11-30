@@ -2,7 +2,7 @@
 
 namespace BsMain\Data\Content;
 
-use BsMain\Data\ActivityType_T;
+use BsMain\Data\Content\ActivityType_T;
 use BsMain\Data\Topic_T;
 use DateTimeInterface;
 

@@ -3,16 +3,22 @@
 namespace BsMain\Api\Resource;
 
 use BsMain\Api\ApiRequest;
+use BsMain\Api\Util\DateTimeParam;
 use BsMain\Api\Util\FileUpload\MultipartFileUploader;
 use BsMain\Data\Access\UserAccess;
+use BsMain\Data\Content\Completion_T;
 use BsMain\Data\Content\ContentObject;
 use BsMain\Data\Content\ContentObject_Module;
 use BsMain\Data\Content\ContentObject_Topic;
 use BsMain\Data\Content\ContentObjectData;
 use BsMain\Data\Content\ContentObjectData_Module;
 use BsMain\Data\Content\ContentObjectData_Topic;
+use BsMain\Data\Content\ScheduledItem;
+use BsMain\Data\Overview\Overview;
 use BsMain\Data\Toc\TableOfContents;
 use BsMain\Exception\BrightspaceException;
+use DateTimeInterface;
+use Deprecated;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -186,6 +192,57 @@ class ContentApi extends ApiShell {
 			->leUrl('%d/content/topics/%d/file', $courseId, $topicId);
 		MultipartFileUploader::addFile($request, 'file', $localFileName);
 		$this->client->execute($request);
+	}
+
+	/**
+	 * Gets the content overview (exists only in Lessons view). Throws a 404 if now overview was set by the lecturer.
+	 * @param int $courseId
+	 * @return Overview
+	 */
+	#[Deprecated('Only available for the legacy lessons view.')]
+	public function getContentOverview(int $courseId): Overview {
+		return $this->client->fetch(Overview::class,
+			ApiRequest::get()
+				->description('content overview')
+				->leUrl('%d/overview', $courseId)
+		);
+	}
+
+	/**
+	 * Gets the content overview attachment (exists only in Lessons view). Throws a 404 if no file was uploaded.
+	 * @param int $courseId
+	 * @return StreamInterface
+	 */
+	#[Deprecated('Only available for the legacy lessons view.')]
+	public function getContentOverviewFile(int $courseId): StreamInterface {
+		$response = $this->client->execute(
+			ApiRequest::get()
+				->description('content overview attachment contents')
+				->leUrl('%d/overview/attachment', $courseId)
+		);
+		return $response->getBody();
+	}
+
+	/**
+	 * @param string $orgUnitIdsCSV
+	 * @param Completion_T|null $completion
+ 	 * @param DateTimeInterface|null $startDateTime
+	 * @param DateTimeInterface|null $endDateTime
+	 * @return ScheduledItem[]
+	 */
+	public function getMyScheduledItems(string             $orgUnitIdsCSV,
+										?Completion_T      $completion = null,
+										?DateTimeInterface $startDateTime = null,
+										?DateTimeInterface $endDateTime = null): array {
+		return $this->client->fetchArray(ScheduledItem::class,
+			ApiRequest::get()
+				->description('scheduled items')
+				->leUrl('content/myItems/')
+				->param('orgUnitIdsCSV', $orgUnitIdsCSV)
+				->param('completion', $completion)
+				->param('startDateTime', DateTimeParam::UTCDateTime($startDateTime))
+				->param('endDateTime', DateTimeParam::UTCDateTime($endDateTime))
+		);
 	}
 
 	public function getCourseToc(int     $courseId,

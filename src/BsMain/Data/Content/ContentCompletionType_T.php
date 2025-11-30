@@ -1,6 +1,6 @@
 <?php
 
-namespace BsMain\Data\Toc;
+namespace BsMain\Data\Content;
 
 enum ContentCompletionType_T: int {
 

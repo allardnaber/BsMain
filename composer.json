@@ -13,7 +13,8 @@
   "require": {
 	"php": "~8.4",
 	"ext-pdo": "*",
-	"allardnaber/oauth2-brightspacelms": "*@dev"
+	"allardnaber/oauth2-brightspacelms": "*@dev",
+	"ext-fileinfo": "*"
   },
   "repositories": [
     {

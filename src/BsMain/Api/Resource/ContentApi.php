@@ -3,12 +3,14 @@
 namespace BsMain\Api\Resource;
 
 use BsMain\Api\ApiRequest;
+use BsMain\Api\Util\FileUpload\MultipartFileUploader;
 use BsMain\Data\Access\UserAccess;
 use BsMain\Data\Content\ContentObject;
 use BsMain\Data\Content\ContentObject_Module;
 use BsMain\Data\Content\ContentObject_Topic;
 use BsMain\Data\Content\ContentObjectData;
 use BsMain\Data\Content\ContentObjectData_Module;
+use BsMain\Data\Content\ContentObjectData_Topic;
 use BsMain\Data\Toc\TableOfContents;
 use BsMain\Exception\BrightspaceException;
 use Psr\Http\Message\StreamInterface;
@@ -167,6 +169,23 @@ class ContentApi extends ApiShell {
 				->leUrl('%d/content/modules/%d', $courseId, $moduleId)
 				->jsonBody(json_encode($moduleData))
 		);
+	}
+
+	public function updateTopic(int $courseId, int $topicId, ContentObjectData_Topic $topicData): void {
+		$this->client->execute(
+			ApiRequest::put()
+				->description('topic')
+				->leUrl('%d/content/topics/%d', $courseId, $topicId)
+				->jsonBody(json_encode($topicData))
+		);
+	}
+
+	public function updateTopicFile(int $courseId, int $topicId, string $localFileName): void {
+		$request = ApiRequest::put()
+			->description('topic file')
+			->leUrl('%d/content/topics/%d/file', $courseId, $topicId);
+		MultipartFileUploader::addFile($request, 'file', $localFileName);
+		$this->client->execute($request);
 	}
 
 	public function getCourseToc(int     $courseId,

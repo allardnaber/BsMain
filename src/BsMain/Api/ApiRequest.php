@@ -116,24 +116,6 @@ class ApiRequest {
 		return $this;
 	}
 
-	//@todo
-	protected function addFileToMultipartOptions(string $visibleName, string $actualFilename, string $contentType, $options = []): array {
-		if (!isset($options[RequestOptions::MULTIPART])) {
-			$options[RequestOptions::MULTIPART] = [];
-		}
-		$fileInfo = pathinfo($actualFilename);
-		$options[RequestOptions::MULTIPART][] = [
-			'name' => $visibleName,
-			'contents' => Utils::tryFopen($actualFilename, 'r'),
-			'filename' => $fileInfo['basename'],
-			'headers' => [
-				'Content-Type' => $contentType
-			]
-		];
-		return $options;
-	}
-
-
 	public function getMethod(): RequestMethod {
 		return $this->method;
 	}
@@ -156,6 +138,17 @@ class ApiRequest {
 
 	public function getOptions(): array {
 		return $this->options;
+	}
+
+	public function setOption(string $name, mixed $value):  void {
+		$this->options[$name] = $value;
+	}
+
+	public function addOptionListItem(string $name, mixed $value): void {
+		if (!isset($this->options[$name])) {
+			$this->options[$name] = [];
+		}
+		$this->options[$name][] = $value;
 	}
 
 

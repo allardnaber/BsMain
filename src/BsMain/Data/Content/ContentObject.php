@@ -6,12 +6,11 @@ use BsMain\Data\ApiEntity;
 use BsMain\Data\Content_T;
 use BsMain\Data\RichText;
 use BsMain\Exception\BrightspaceException;
-use DateTimeImmutable;
 use DateTimeInterface;
 
 /**
  * ContentObject is the combined object for modules and topics. Common properties are in this object, more specific
- * properties are in the overloaded classes ContentObjectModule and ContentObjectTopic. The {@see instance}
+ * properties are in the overloaded classes ContentObjectModule and ContentObjectTopic. The {@see getSubClass}
  * method differentiates between the two.
  */
 abstract class ContentObject extends ApiEntity {

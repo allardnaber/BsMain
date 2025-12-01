@@ -13,7 +13,10 @@ use BsMain\Data\Content\ContentObject_Topic;
 use BsMain\Data\Content\ContentObjectData;
 use BsMain\Data\Content\ContentObjectData_Module;
 use BsMain\Data\Content\ContentObjectData_Topic;
+use BsMain\Data\Content\Exemption_T;
+use BsMain\Data\Content\OverdueItem;
 use BsMain\Data\Content\ScheduledItem;
+use BsMain\Data\Content\ScheduledItemCount;
 use BsMain\Data\Overview\Overview;
 use BsMain\Data\Toc\TableOfContents;
 use BsMain\Exception\BrightspaceException;
@@ -226,14 +229,14 @@ class ContentApi extends ApiShell {
 	/**
 	 * @param string $orgUnitIdsCSV
 	 * @param Completion_T|null $completion
- 	 * @param DateTimeInterface|null $startDateTime
+	 * @param DateTimeInterface|null $startDateTime
 	 * @param DateTimeInterface|null $endDateTime
 	 * @return ScheduledItem[]
 	 */
-	public function getMyScheduledItems(string             $orgUnitIdsCSV,
-										?Completion_T      $completion = null,
-										?DateTimeInterface $startDateTime = null,
-										?DateTimeInterface $endDateTime = null): array {
+	public function getMyScheduledItemsForOrgUnits(string             $orgUnitIdsCSV,
+												   ?Completion_T      $completion = null,
+												   ?DateTimeInterface $startDateTime = null,
+												   ?DateTimeInterface $endDateTime = null): array {
 		return $this->client->fetchArray(ScheduledItem::class,
 			ApiRequest::get()
 				->description('scheduled items')
@@ -242,6 +245,227 @@ class ContentApi extends ApiShell {
 				->param('completion', $completion)
 				->param('startDateTime', DateTimeParam::UTCDateTime($startDateTime))
 				->param('endDateTime', DateTimeParam::UTCDateTime($endDateTime))
+		);
+	}
+
+	/**
+	 * @param int $userId
+	 * @param string $orgUnitIdsCSV
+	 * @param Completion_T|null $completion
+	 * @param DateTimeInterface|null $startDateTime
+	 * @param DateTimeInterface|null $endDateTime
+	 * @param Exemption_T|null $exemption
+	 * @return ScheduledItem[]
+	 */
+	public function getScheduledItemsForUserForOrgUnits(int                $userId,
+														string             $orgUnitIdsCSV,
+														?Completion_T      $completion = null,
+														?DateTimeInterface $startDateTime = null,
+														?DateTimeInterface $endDateTime = null,
+														?Exemption_T       $exemption = null): array {
+		return $this->client->fetchArray(ScheduledItem::class,
+			ApiRequest::get()
+				->description('scheduled items')
+				->leUrl('content/items/%d', $userId)
+				->param('orgUnitIdsCSV', $orgUnitIdsCSV)
+				->param('completion', $completion)
+				->param('startDateTime', DateTimeParam::UTCDateTime($startDateTime))
+				->param('endDateTime', DateTimeParam::UTCDateTime($endDateTime))
+				->param('exemption', $exemption)
+		);
+	}
+
+	/**
+	 * @param string $orgUnitIdsCSV
+	 * @param Completion_T|null $completion
+	 * @param DateTimeInterface|null $startDateTime
+	 * @param DateTimeInterface|null $endDateTime
+	 * @return ScheduledItem[]
+	 */
+	public function getMyDueItemsForOrgUnits(string             $orgUnitIdsCSV,
+											 ?Completion_T      $completion = null,
+											 ?DateTimeInterface $startDateTime = null,
+											 ?DateTimeInterface $endDateTime = null): array {
+		return $this->client->fetchArray(ScheduledItem::class,
+			ApiRequest::get()
+				->description('due items')
+				->leUrl('content/myItems/due/')
+				->param('orgUnitIdsCSV', $orgUnitIdsCSV)
+				->param('completion', $completion)
+				->param('startDateTime', DateTimeParam::UTCDateTime($startDateTime))
+				->param('endDateTime', DateTimeParam::UTCDateTime($endDateTime))
+		);
+	}
+
+	/**
+	 * @param string $orgUnitIdsCSV
+	 * @param Completion_T|null $completion
+	 * @param DateTimeInterface|null $startDateTime
+	 * @param DateTimeInterface|null $endDateTime
+	 * @return ScheduledItemCount[]
+	 */
+	public function getMyScheduledItemCountsForOrgUnits(string             $orgUnitIdsCSV,
+														?Completion_T      $completion = null,
+														?DateTimeInterface $startDateTime = null,
+														?DateTimeInterface $endDateTime = null): array {
+		return $this->client->fetchArray(ScheduledItemCount::class,
+			ApiRequest::get()
+				->description('scheduled item counts')
+				->leUrl('content/myItems/itemCounts/')
+				->param('orgUnitIdsCSV', $orgUnitIdsCSV)
+				->param('completion', $completion)
+				->param('startDateTime', DateTimeParam::UTCDateTime($startDateTime))
+				->param('endDateTime', DateTimeParam::UTCDateTime($endDateTime))
+		);
+	}
+
+	public function getMyDueItemCountsForOrgUnits(string             $orgUnitIdsCSV,
+												  ?Completion_T      $completion = null,
+												  ?DateTimeInterface $startDateTime = null,
+												  ?DateTimeInterface $endDateTime = null): array {
+		return $this->client->fetchArray(ScheduledItemCount::class,
+			ApiRequest::get()
+				->description('due item counts')
+				->leUrl('content/myItems/due/itemCounts/')
+				->param('orgUnitIdsCSV', $orgUnitIdsCSV)
+				->param('completion', $completion)
+				->param('startDateTime', DateTimeParam::UTCDateTime($startDateTime))
+				->param('endDateTime', DateTimeParam::UTCDateTime($endDateTime))
+		);
+	}
+
+	/**
+	 * @param string $orgUnitIdsCSV
+	 * @param DateTimeInterface|null $completedFromDateTime
+	 * @param DateTimeInterface|null $completedToDateTime
+	 * @return ScheduledItem[]
+	 */
+	public function getMyCompletedItemsForOrgUnits(string             $orgUnitIdsCSV,
+												   ?DateTimeInterface $completedFromDateTime = null,
+												   ?DateTimeInterface $completedToDateTime = null): array {
+		return $this->client->fetchArray(ScheduledItem::class,
+			ApiRequest::get()
+				->description('completed items')
+				->leUrl('content/myItems/completions/')
+				->param('orgUnitIdsCSV', $orgUnitIdsCSV)
+				->param('completedFromDateTime', DateTimeParam::UTCDateTime($completedFromDateTime))
+				->param('completedToDateTime', DateTimeParam::UTCDateTime($completedToDateTime))
+		);
+	}
+
+	/**
+	 * @param string $orgUnitIdsCSV
+	 * @param DateTimeInterface|null $completedFromDateTime
+	 * @param DateTimeInterface|null $completedToDateTime
+	 * @return ScheduledItem[]
+	 */
+	public function getMyCompletedItemsWithDueDateForOrgUnits(string             $orgUnitIdsCSV,
+															  ?DateTimeInterface $completedFromDateTime = null,
+															  ?DateTimeInterface $completedToDateTime = null): array {
+		return $this->client->fetchArray(ScheduledItem::class,
+			ApiRequest::get()
+				->description('completed items with due date')
+				->leUrl('content/myItems/completions/due/')
+				->param('orgUnitIdsCSV', $orgUnitIdsCSV)
+				->param('completedFromDateTime', DateTimeParam::UTCDateTime($completedFromDateTime))
+				->param('completedToDateTime', DateTimeParam::UTCDateTime($completedToDateTime))
+		);
+	}
+
+	/**
+	 * @param int $courseId
+	 * @param Completion_T|null $completion
+	 * @param DateTimeInterface|null $startDateTime
+	 * @param DateTimeInterface|null $endDateTime
+	 * @return ScheduledItem[]
+	 */
+	public function getMyScheduledItems(int                $courseId,
+										?Completion_T      $completion = null,
+										?DateTimeInterface $startDateTime = null,
+										?DateTimeInterface $endDateTime = null): array {
+		return $this->client->fetchArray(ScheduledItem::class,
+			ApiRequest::get()
+				->description('scheduled items')
+				->leUrl('%d/content/myItems/', $courseId)
+				->param('completion', $completion)
+				->param('startDateTime', DateTimeParam::UTCDateTime($startDateTime))
+				->param('endDateTime', DateTimeParam::UTCDateTime($endDateTime))
+		);
+	}
+
+	/**
+	 * @param int $courseId
+	 * @param Completion_T|null $completion
+	 * @param DateTimeInterface|null $startDateTime
+	 * @param DateTimeInterface|null $endDateTime
+	 * @return ScheduledItem[]
+	 */
+	public function getMyDueItems(int                $courseId,
+								  ?Completion_T      $completion = null,
+								  ?DateTimeInterface $startDateTime = null,
+								  ?DateTimeInterface $endDateTime = null): array {
+		return $this->client->fetchArray(ScheduledItem::class,
+			ApiRequest::get()
+				->description('due items')
+				->leUrl('%d/content/myItems/due/', $courseId)
+				->param('completion', $completion)
+				->param('startDateTime', DateTimeParam::UTCDateTime($startDateTime))
+				->param('endDateTime', DateTimeParam::UTCDateTime($endDateTime))
+		);
+	}
+
+	public function getMyScheduledItemCount(int                $courseId,
+											 ?Completion_T      $completion = null,
+											 ?DateTimeInterface $startDateTime = null,
+											 ?DateTimeInterface $endDateTime = null): ScheduledItemCount {
+		return $this->client->fetch(ScheduledItemCount::class,
+			ApiRequest::get()
+				->description('scheduled item counts')
+				->leUrl('%d/content/myItems/itemCount/', $courseId)
+				->param('completion', $completion)
+				->param('startDateTime', DateTimeParam::UTCDateTime($startDateTime))
+				->param('endDateTime', DateTimeParam::UTCDateTime($endDateTime))
+		);
+	}
+
+	public function getMyDueItemCount(int                $courseId,
+									  ?Completion_T      $completion = null,
+									  ?DateTimeInterface $startDateTime = null,
+									  ?DateTimeInterface $endDateTime = null): ScheduledItemCount {
+		return $this->client->fetch(ScheduledItemCount::class,
+			ApiRequest::get()
+				->description('due item counts')
+				->leUrl('%d/content/myItems/due/itemCount/', $courseId)
+				->param('completion', $completion)
+				->param('startDateTime', DateTimeParam::UTCDateTime($startDateTime))
+				->param('endDateTime', DateTimeParam::UTCDateTime($endDateTime))
+		);
+	}
+
+	/**
+	 * @param int $userId
+	 * @param string $orgUnitIdsCSV
+	 * @return OverdueItem[]
+	 */
+	public function getOverdueItemsForUserForOrgUnits(int $userId, string $orgUnitIdsCSV): array {
+		return $this->client->fetchArray(OverdueItem::class,
+			ApiRequest::get()
+				->description('overdue items')
+				->leUrl('overdueItems/')
+				->param('userId', $userId)
+				->param('orgUnitIdsCSV', $orgUnitIdsCSV)
+		);
+	}
+	/**
+	 * @param string $orgUnitIdsCSV
+	 * @return OverdueItem[]
+	 */
+	public function getMyOverdueItemsForOrgUnits(string $orgUnitIdsCSV): array {
+		return $this->client->fetchArray(OverdueItem::class,
+			ApiRequest::get()
+				->description('overdue items')
+				->leUrl('overdueItems/myItems/')
+				->param('orgUnitIdsCSV', $orgUnitIdsCSV)
 		);
 	}
 

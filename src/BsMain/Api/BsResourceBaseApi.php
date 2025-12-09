@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\RequestOptions;
+use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 
 abstract class BsResourceBaseApi {
@@ -23,6 +24,10 @@ abstract class BsResourceBaseApi {
 	public function __construct(BsApiClient $client) {
 		$this->client = $client;
 		$this->apiBaseUrl = $this->client->getConfig('brightspace', 'url');
+	}
+
+	protected function getClient(): BsApiClient {
+		return $this->client;
 	}
 
 	/**
@@ -63,7 +68,7 @@ abstract class BsResourceBaseApi {
 	 * @return array Associative array with the decoded values of the full result set. Paging info not included.
 	 */
 	private function requestPaged(string $url, string $dataType): array {
-		$response = json_decode($this->requestRaw($url, $dataType), true);
+		$response = json_decode($this->requestRawContents($url, $dataType), true);
 
 		if (isset($response['Items'])) {
 			return $this->getPagedResultSet($url, $dataType, $response);
@@ -89,7 +94,7 @@ abstract class BsResourceBaseApi {
 		while ($response['PagingInfo']['HasMoreItems']) {
 			$bookmark = $response['PagingInfo']['Bookmark'];
 			$pagedUrl = sprintf('%s%sbookmark=%s', $url, $bookmarkSep, $bookmark);
-			$response = json_decode($this->requestRaw($pagedUrl, $dataType), true);
+			$response = json_decode($this->requestRawContents($pagedUrl, $dataType), true);
 			$result = array_merge($result, $response['Items']);
 		}
 		return $result;
@@ -107,7 +112,7 @@ abstract class BsResourceBaseApi {
 	private function getObjectListPage(string $url, string $dataType, mixed $response): array {
 		$result = $response['Objects'];
 		while ($response['Next'] !== null) {
-			$response = json_decode($this->requestRaw($this->convertNextUrl($response['Next']), $dataType), true);
+			$response = json_decode($this->requestRawContents($this->convertNextUrl($response['Next']), $dataType), true);
 			$result = array_merge($result, $response['Objects']);
 		}
 		return $result;
@@ -135,7 +140,7 @@ abstract class BsResourceBaseApi {
 	 * @param array $options
 	 * @return mixed|null Decoded associative array from raw response.
 	 */
-	protected function request(
+	public function request(
 		string $url,
 		?string $resultClass,
 		?string $dataType = 'object',
@@ -143,7 +148,7 @@ abstract class BsResourceBaseApi {
 		?string $jsonData = null,
 		array $options = []
 	): ?GenericObject {
-		$result = json_decode($this->requestRaw($url, $dataType, $method, $jsonData, $options), true);
+		$result = json_decode($this->requestRawContents($url, $dataType, $method, $jsonData, $options), true);
 		if ($resultClass === null) {
 			return null;
 		}
@@ -164,7 +169,7 @@ abstract class BsResourceBaseApi {
 	 * @param array $options
 	 * @return array|null Decoded associative array from raw response.
 	 */
-	protected function requestArray(
+	public function requestArray(
 		string $url,
 		?string $resultClass,
 		bool $paged,
@@ -175,7 +180,7 @@ abstract class BsResourceBaseApi {
 	): array|null {
 		$result = $paged
 			? $this->requestPaged($url, $dataType)
-			: json_decode($this->requestRaw($url, $dataType, $method, $jsonData, $options), true);
+			: json_decode($this->requestRawContents($url, $dataType, $method, $jsonData, $options), true);
 		if ($resultClass === null) {
 			return null;
 		}
@@ -196,13 +201,33 @@ abstract class BsResourceBaseApi {
 	 * @return string Raw response from API
 	 * @throws BsAppRuntimeException
 	 */
-	protected function requestRaw(
+	public function requestRawContents(
 		string $url,
 		string $dataType = 'object',
 		string $method = 'GET',
 		?string $jsonData = null,
 		array $options = []
 	): string {
+		return $this->requestRaw($url, $dataType, $method, $jsonData, $options)->getBody()->getContents();
+	}
+
+	/**
+	 * Perform the API request
+	 * @param string $url
+	 * @param string $dataType
+	 * @param string $method
+	 * @param string|null $jsonData
+	 * @param array $options
+	 * @return ResponseInterface Raw response object, including headers
+	 * @throws BsAppRuntimeException
+	 */
+	public function requestRaw(
+		string $url,
+		string $dataType = 'object',
+		string $method = 'GET',
+		?string $jsonData = null,
+		array $options = []
+	): ResponseInterface {
 
 		try {
 			$request = $this->client->getProvider()->getAuthenticatedRequest(
@@ -214,29 +239,13 @@ abstract class BsResourceBaseApi {
 				$options[RequestOptions::HEADERS]['Content-Type'] = 'application/json';
 			}
 			$response = $this->client->getHttp()->send($request, $options);
-			return $response->getBody()->getContents();
+			return $response;
 		} catch (RequestException $ex) {
 			$status = $ex->getResponse() !== null ? $ex->getResponse()->getStatusCode() : 0;
 			throw new BsAppApiException($method, $dataType, $status);
 		} catch (GuzzleException $ex) {
 			throw new BsAppRuntimeException($ex->getMessage());
 		}
-	}
-
-	protected function addFileToMultipartOptions(string $visibleName, string $actualFilename, string $contentType, $options = []): array {
-		if (!isset($options[RequestOptions::MULTIPART])) {
-			$options[RequestOptions::MULTIPART] = [];
-		}
-		$fileInfo = pathinfo($actualFilename);
-		$options[RequestOptions::MULTIPART][] = [
-			'name' => $visibleName,
-			'contents' => Utils::tryFopen($actualFilename, 'r'),
-			'filename' => $fileInfo['basename'],
-			'headers' => [
-				'Content-Type' => $contentType
-			]
-		];
-		return $options;
 	}
 
 }

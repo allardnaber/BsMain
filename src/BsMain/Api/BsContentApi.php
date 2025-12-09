@@ -48,6 +48,6 @@ class BsContentApi extends BsResourceBaseApi {
 	 * @return string The raw contents of the specified file
 	 */
 	public function getContentFile(int $courseId, int $topicId): string {
-		return $this->requestRaw($this->url('/le/1.51/%d/content/topics/%d/file', $courseId, $topicId), 'the file');
+		return $this->requestRawContents($this->url('/le/1.51/%d/content/topics/%d/file', $courseId, $topicId), 'the file');
 	}
 }

@@ -128,4 +128,12 @@ class BsApiClient {
 	public function grades(): BsGradesApi {
 		return $this->getResourceApi('grades', BsGradesApi::class);
 	}
+
+	public function assignments(): BsAssignmentApi {
+		return $this->getResourceApi('assignments', BsAssignmentApi::class);
+	}
+
+	public function awards(): BsAwardsApi {
+		return $this->getResourceApi('awards', BsAwardsApi::class);
+	}
 }

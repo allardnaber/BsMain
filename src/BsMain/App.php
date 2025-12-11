@@ -13,9 +13,9 @@ class App {
 	public static function start(array $config): void {
 		set_error_handler(ErrorHelper::ERROR_HANDLER);
 		$configObj = new Configuration($config);
-		SessionManager::create($configObj);
 		$output = new OutputTemplate($config['smarty']);
 		try {
+			SessionManager::create($configObj);
 			list ($controllerName, $method) = self::getControllerMethod();
 			$controller = new $controllerName($output, $configObj);
 			call_user_func([$controller, $method]);

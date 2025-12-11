@@ -55,11 +55,17 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 
 	private function getDbConnection(): PDO {
 		$dbConfig = $this->getFullConfig()->get('db');
-		return new PDO(
+		$pdo = new PDO(
 			$dbConfig['dsn'],
 			$dbConfig['username'] ?? null,
 			$dbConfig['password'] ?? null,
 			$dbConfig['pdo_options'] ?? null);
+		
+		if (isset($dbConfig['schema'])) {
+			$stmt = $this->connection->prepare(sprintf('SET search_path to %s', $dbConfig['schema']));
+			$stmt->execute();
+		}
+		return $pdo;
 	}
 
 	private function optionallyCreateTable(): void {

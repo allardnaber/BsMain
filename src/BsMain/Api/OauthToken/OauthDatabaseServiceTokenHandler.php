@@ -60,9 +60,9 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 			$dbConfig['username'] ?? null,
 			$dbConfig['password'] ?? null,
 			$dbConfig['pdo_options'] ?? null);
-		
+
 		if (isset($dbConfig['schema'])) {
-			$stmt = $this->connection->prepare(sprintf('SET search_path to %s', $dbConfig['schema']));
+			$stmt = $pdo->prepare(sprintf('SET search_path to %s', $dbConfig['schema']));
 			$stmt->execute();
 		}
 		return $pdo;

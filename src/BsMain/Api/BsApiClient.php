@@ -9,6 +9,7 @@ use BsMain\Api\OauthToken\OauthTokenHandler;
 use BsMain\Api\Resource\ApiShell;
 use BsMain\Api\Resource\ContentApi;
 use BsMain\Api\Resource\CourseApi;
+use BsMain\Api\Resource\DropboxApi;
 use BsMain\Api\Resource\EnrollmentApi;
 use BsMain\Api\Resource\QuizApi;
 use BsMain\Data\ApiEntity;
@@ -341,5 +342,9 @@ class BsApiClient {
 
 	public function quiz(): QuizApi {
 		return $this->getNextGenApi('quiz', QuizApi::class);
+	}
+
+	public function dropbox(): DropboxApi {
+		return $this->getNextGenApi('dropbox', DropboxApi::class);
 	}
 }

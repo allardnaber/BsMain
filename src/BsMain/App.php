@@ -27,7 +27,7 @@ class App {
 	}
 
 	private static function getControllerMethod() {
-		$path = $_SERVER['PATH_INFO'];
+		$path = $_SERVER['REDIRECT_URL'] ?? $_SERVER['PATH_INFO'] ?? '';
 		$actions = $GLOBALS[RouteFactory::ACTION_MAPPING_KEY];
 
 		if (isset($actions[$path])) {

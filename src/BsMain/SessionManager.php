@@ -5,6 +5,7 @@ namespace BsMain;
 use BsMain\Configuration\Configuration;
 use BsMain\Util\DatabaseConnection;
 use DbSession\Handler;
+use Sald\Connection\ConnectionManager;
 
 class SessionManager {
 
@@ -28,8 +29,7 @@ class SessionManager {
 		}
 		switch ($config->getOptional('app', 'sessionHandler')) {
 			case 'db':
-				$dbConfig = $config->getOptional('app', 'sessionDb') ?? $config->get('db');
-				Handler::register(DatabaseConnection::getConnection($dbConfig));
+				Handler::register(ConnectionManager::get());
 				break;
 
 			default:

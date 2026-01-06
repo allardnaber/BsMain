@@ -10,15 +10,17 @@ use BsMain\Template\OutputTemplate;
 
 class App {
 
-	public static function start(array $config): void {
+	public static function start(array $config, mixed $onBeforeStartCallback = null, mixed $onCompletionCallback = null): void {
 		set_error_handler(ErrorHelper::ERROR_HANDLER);
 		$configObj = new Configuration($config);
 		$output = new OutputTemplate($config['smarty']);
+		if ($onBeforeStartCallback !== null) $onBeforeStartCallback($configObj, $output);
 		try {
 			SessionManager::create($configObj);
 			list ($controllerName, $method) = self::getControllerMethod();
 			$controller = new $controllerName($output, $configObj);
 			call_user_func([$controller, $method]);
+			if ($onCompletionCallback !== null) $onCompletionCallback($configObj, $output);
 		} catch (\Throwable $ex) {
 			$errorController = new BsBaseController($output, $configObj);
 			$errorHelper = new ErrorHelper($ex, $errorController);

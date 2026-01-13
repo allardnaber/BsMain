@@ -8,6 +8,7 @@ use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 use PDO;
+use Sald\Connection\ConnectionManager;
 
 /**
  * Service token handler, with the token stored in the database.
@@ -21,7 +22,7 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 
 	public function __construct(AbstractProvider $provider, Configuration $config) {
 		parent::__construct($provider, $config);
-		$this->connection = $this->getDbConnection();
+		$this->connection = ConnectionManager::get();
 		$this->tableName = $config->getOptional('oauth2', 'serviceTokenTableName') ?? self::DEFAULT_TABLE_NAME;
 	}
 
@@ -51,21 +52,6 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 			$this->connection->rollBack();
 			throw $e;
 		}
-	}
-
-	private function getDbConnection(): PDO {
-		$dbConfig = $this->getFullConfig()->get('db');
-		$pdo = new PDO(
-			$dbConfig['dsn'],
-			$dbConfig['username'] ?? null,
-			$dbConfig['password'] ?? null,
-			$dbConfig['pdo_options'] ?? null);
-
-		if (isset($dbConfig['schema'])) {
-			$stmt = $pdo->prepare(sprintf('SET search_path to %s', $dbConfig['schema']));
-			$stmt->execute();
-		}
-		return $pdo;
 	}
 
 	private function optionallyCreateTable(): void {

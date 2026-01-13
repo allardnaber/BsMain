@@ -25,18 +25,19 @@ class ErrorHelper {
 	 * @throws SmartyException
 	 */
 	public function display(): void {
+		if ($this->exception instanceof SafariOauthException) {
+			$this->controller->assign('redirectLink', $this->exception->getRedirectLink());
+			$this->controller->getOutput()->displaySafariError();
+			return;
+		}
 		$errorInfo = $this->getErrorInfo();
 		error_log($this->getLogLine($errorInfo));
 		http_response_code($errorInfo[2] ?? 500);
 		$this->controller->assign('supportEmail', $this->controller->getConfig()['app']['supportEmail']);
 		$this->controller->assign('errorType', $errorInfo[0]);
 		$this->controller->assign('error', $errorInfo[1]);
-		if ($this->exception instanceof SafariOauthException) {
-			$this->controller->assign('redirectLink', $this->exception->getRedirectLink());
-			$this->controller->getOutput()->displaySafariError();
-		} else {
-			$this->controller->getOutput()->displayError();
-		}
+
+		$this->controller->getOutput()->displayError();
 	}
 
 	private function getLogLine(array $errorInfo): string {

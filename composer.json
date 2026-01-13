@@ -15,6 +15,7 @@
     "league/oauth2-client": "*",
     "smarty/smarty": "4.*",
     "csharpru/vault-php": "4.4.*",
+    "allardnaber/phpsald": "*@dev",
     "allardnaber/phpdbsessionhandler": "*@dev",
     "ext-pdo": "*",
 	"ext-fileinfo": "*"
@@ -23,7 +24,11 @@
     {
       "type": "vcs",
       "url": "https://github.com/allardnaber/PhpDbSessionHandler"
-    }
+    },
+	{
+	  "type": "vcs",
+	  "url": "https://github.com/allardnaber/phpsald"
+	}
   ],
   "autoload": {
     "psr-4": {

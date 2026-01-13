@@ -4,6 +4,7 @@ namespace BsMain;
 
 use BsMain\Configuration\Configuration;
 use DbSession\Handler;
+use Sald\Connection\ConnectionManager;
 
 class SessionManager {
 
@@ -27,9 +28,7 @@ class SessionManager {
 		}
 		switch ($config->getOptional('app', 'sessionHandler')) {
 			case 'db':
-				$dbConfig = $config->getOptional('app', 'sessionDb') ?? $config->get('db');
-				Handler::connectAndRegister($dbConfig['dsn'], $dbConfig['username'], $dbConfig['password'],
-					$dbConfig['pdo_options'] ?? null, $dbConfig['schema'] ?? null);
+				Handler::register(ConnectionManager::get());
 				break;
 
 			default:

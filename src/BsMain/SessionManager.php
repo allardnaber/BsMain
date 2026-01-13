@@ -3,7 +3,6 @@
 namespace BsMain;
 
 use BsMain\Configuration\Configuration;
-use BsMain\Util\DatabaseConnection;
 use DbSession\Handler;
 use Sald\Connection\ConnectionManager;
 

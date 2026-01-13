@@ -4,7 +4,6 @@ namespace BsMain\Api\OauthToken;
 
 use BsMain\Configuration\Configuration;
 use BsMain\Exception\BsAppRuntimeException;
-use BsMain\Util\DatabaseConnection;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Token\AccessTokenInterface;

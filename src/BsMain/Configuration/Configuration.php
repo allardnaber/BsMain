@@ -15,7 +15,7 @@ class Configuration {
 
 	private const CACHE_FALLBACK = -1;
 
-	public function __construct(array $config) {
+	public function __construct(#[\SensitiveParameter] array $config) {
 		$this->config = $config;
 		try {
 			$this->resolveConfig();
@@ -127,5 +127,9 @@ class Configuration {
 	private function saveToCache(): void {
 		$fname = $this->config['config']['cachePath'];
 		file_put_contents($fname, serialize($this->config));
+	}
+
+	public function __debugInfo(): array {
+		return ['configuration' => '***'];
 	}
 }

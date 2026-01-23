@@ -10,7 +10,7 @@ use BsMain\Template\OutputTemplate;
 
 class App {
 
-	public static function start(array $config, mixed $onBeforeStartCallback = null, mixed $onCompletionCallback = null): void {
+	public static function start(#[\SensitiveParameter] array $config, mixed $onBeforeStartCallback = null, mixed $onCompletionCallback = null): void {
 		set_error_handler(ErrorHelper::ERROR_HANDLER);
 		$configObj = new Configuration($config);
 		$output = new OutputTemplate($config['smarty']);

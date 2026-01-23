@@ -4,10 +4,13 @@ namespace BsMain\Api\OauthToken;
 
 use BsMain\Configuration\Configuration;
 use BsMain\Exception\BsAppRuntimeException;
+use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Client\Provider\AbstractProvider;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 use PDO;
+use PDOException;
 use Sald\Connection\ConnectionManager;
 
 /**
@@ -20,16 +23,16 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 	private PDO $connection;
 	private string $tableName;
 
-	public function __construct(AbstractProvider $provider, Configuration $config) {
-		parent::__construct($provider, $config);
+	public function __construct(BrightspaceProvider $provider, Configuration $config, ServiceAuthType $authType) {
+		parent::__construct($provider, $config, $authType);
 		$this->connection = ConnectionManager::get();
 		$this->tableName = $config->getOptional('oauth2', 'serviceTokenTableName') ?? self::DEFAULT_TABLE_NAME;
 	}
 
-	public function retrieveAccessToken(): void {
-		$this->setAccessToken($this->getAccessTokenFromDb());
-	}
-
+	/**
+	 * @throws GuzzleException
+	 * @throws IdentityProviderException
+	 */
 	public function refreshAccessToken(): void {
 		$this->connection->beginTransaction();
 
@@ -37,8 +40,8 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 			// lock table to be sure we are the only one to refresh the service token
 			$this->connection->exec(sprintf('lock table %s in row exclusive mode', $this->tableName));
 
-			$storedToken = $this->getAccessTokenFromDb(true);
-			if ($storedToken->getToken() === $this->getCurrentAccessToken()->getToken()) {
+			$storedToken = $this->getStoredServiceToken(true);
+			if ($storedToken->getToken() === $this->getCurrentAccessToken()?->getToken()) {
 				// if the stored token has not been renewed yet, renew
 				$this->renewTokenWithProvider();
 				$this->saveAccessTokenToDb($this->getCurrentAccessToken());
@@ -48,7 +51,7 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 				$this->setAccessToken($storedToken);
 				$this->connection->rollBack();
 			}
-		} catch (\PDOException $e) {
+		} catch (PDOException $e) {
 			$this->connection->rollBack();
 			throw $e;
 		}
@@ -60,7 +63,7 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 		);
 	}
 
-	private function getAccessTokenFromDb(bool $withLock = false): AccessTokenInterface {
+	protected function getStoredServiceToken(bool $withLock = false): ?AccessTokenInterface {
 		try {
 			$stmt = $this->connection->query(sprintf('select * from %s %s', $this->tableName, $withLock ? ' for update' : ''), PDO::FETCH_ASSOC);
 			if ($stmt !== false && $stmt->rowCount() > 0) {
@@ -72,11 +75,10 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 				}
 				return new AccessToken($tokenArr);
 			}
-			else {
-				throw new BsAppRuntimeException('Brightspace service account has not yet been configured or cannot be read.');
-			}
-		} catch (\PDOException $e) {
-			throw new BsAppRuntimeException('Brightspace service account has not yet been configured or cannot be read.', 0, $e);
+			return null;
+
+		} catch (PDOException $e) {
+			throw new BsAppRuntimeException('Brightspace service account could not be read from database.', 0, $e);
 		}
 	}
 
@@ -85,7 +87,7 @@ class OauthDatabaseServiceTokenHandler extends OauthServiceTokenHandler {
 		$stmt->execute([ json_encode($accessToken->jsonSerialize()) ]);
 	}
 
-	public function setServiceToken(AccessTokenInterface $serviceToken): void {
+	protected function storeServiceToken(AccessTokenInterface $serviceToken): void {
 		$this->optionallyCreateTable();
 		$this->saveAccessTokenToDb($serviceToken);
 	}

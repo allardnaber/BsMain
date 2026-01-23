@@ -4,6 +4,7 @@ namespace BsMain\Api\OauthToken;
 
 use BsMain\Exception\BsAppRuntimeException;
 use BsMain\Exception\SafariOauthException;
+use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Token\AccessTokenInterface;
@@ -43,6 +44,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 
 	/**
 	 * @throws IdentityProviderException
+	 * @throws GuzzleException
 	 */
 	public function refreshAccessToken(): void {
 		$this->renewTokenWithProvider();
@@ -103,7 +105,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 	}
 
 	private function saveTokenToSession(): void {
-		$_SESSION[self::TOKEN_NAME] = json_encode($this->getCurrentAccessToken()->jsonSerialize());
+		$_SESSION[self::TOKEN_NAME] = json_encode($this->getCurrentAccessToken()?->jsonSerialize());
 	}
 
 	public function getTokenFromSession(): ?AccessTokenInterface {

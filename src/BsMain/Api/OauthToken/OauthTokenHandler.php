@@ -3,17 +3,17 @@
 namespace BsMain\Api\OauthToken;
 
 use BsMain\Configuration\Configuration;
-use League\OAuth2\Client\Provider\AbstractProvider;
+use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 
 abstract class OauthTokenHandler {
 	
-	private AbstractProvider $provider;
+	private BrightspaceProvider $provider;
 	private Configuration $config;
 	private AccessTokenInterface $accessToken;
 	
-	public function __construct(AbstractProvider $provider, Configuration $config) {
+	public function __construct(BrightspaceProvider $provider, Configuration $config) {
 		$this->provider = $provider;
 		$this->config = $config;
 	}
@@ -31,15 +31,15 @@ abstract class OauthTokenHandler {
 		return $this->accessToken;
 	}
 
-	protected function getCurrentAccessToken(): AccessTokenInterface{
-		return $this->accessToken;
+	protected function getCurrentAccessToken(): ?AccessTokenInterface {
+		return $this->accessToken ?? null;
 	}	
 	
 	protected function setAccessToken($accessToken): void {
 		$this->accessToken = $accessToken;
 	}
 	
-	protected function getProvider(): AbstractProvider {
+	protected function getProvider(): BrightspaceProvider {
 		return $this->provider;
 	}
 	
@@ -49,11 +49,12 @@ abstract class OauthTokenHandler {
 
 	/**
 	 * @throws IdentityProviderException
+	 * @throws GuzzleException
 	 */
 	protected function renewTokenWithProvider(): void {
 		$this->setAccessToken($this->getProvider()->getAccessToken(
 			'refresh_token',
-			['refresh_token' => $this->getCurrentAccessToken()->getRefreshToken()]
+			[ 'refresh_token' => $this->getCurrentAccessToken()?->getRefreshToken() ]
 		));
 	}
 	

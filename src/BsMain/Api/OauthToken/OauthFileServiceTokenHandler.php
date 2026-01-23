@@ -3,6 +3,7 @@
 namespace BsMain\Api\OauthToken;
 
 use BsMain\Configuration\Configuration;
+use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Token\AccessTokenInterface;
@@ -15,41 +16,45 @@ use BsMain\Exception\BsAppRuntimeException;
  */
 class OauthFileServiceTokenHandler extends OauthServiceTokenHandler {
 
-	private const READ_MODE = 1;
-	private const WRITE_MODE = 2;
+	private const int READ_MODE = 1;
+	private const int WRITE_MODE = 2;
 
 	private string $tokenFile;
 
-	public function __construct($provider, Configuration $config) {
-		parent::__construct($provider, $config);
+	public function __construct(BrightspaceProvider $provider, Configuration $config, ServiceAuthType $authType) {
+		parent::__construct($provider, $config, $authType);
 		$this->tokenFile = $config->get('oauth2', 'serviceTokenFile');
 	}
 
-	public function retrieveAccessToken(): void {
+	public function getStoredServiceToken(): ?AccessTokenInterface {
 		$filePointer = $this->openTokenFile(self::READ_MODE);
+		if ($filePointer === null) return null;
 
 		$token = $this->getTokenFromFileReference($filePointer);
-		$this->setAccessToken($token);
-
 		$this->closeTokenFile($filePointer);
+
+		return $token;
 	}
 
 	/**
 	 * @throws IdentityProviderException
+	 * @throws GuzzleException
 	 */
 	public function refreshAccessToken(): void {
 		$filePointer = $this->openTokenFile(self::WRITE_MODE);
-		$token = $this->getTokenFromFileReference($filePointer);
+		try {
+			$token = $this->getTokenFromFileReference($filePointer);
 
-		// Check again to see if the token has expired, it might have been refreshed already.
-		// In that case $token contains the newest token, we can proceed with that.
-		if ($token->hasExpired()) {
-			$this->renewTokenWithProvider();
+			// Check again to see if the token has expired, it might have been refreshed already.
+			// In that case $token contains the newest token, we can proceed with that.
+			if ($token->hasExpired()) {
+				$this->renewTokenWithProvider();
 
-			$this->writeTokenToFileReference($filePointer, $token);
+				$this->writeTokenToFileReference($filePointer, $token);
+			}
+		} finally {
+			$this->closeTokenFile($filePointer);
 		}
-
-		$this->closeTokenFile($filePointer);
 	}
 
 	/**
@@ -62,7 +67,7 @@ class OauthFileServiceTokenHandler extends OauthServiceTokenHandler {
 	 */
 	private function openTokenFile(int $mode): mixed {
 		if ($mode === self::READ_MODE && !is_readable($this->tokenFile)) {
-			throw new BsAppRuntimeException('Brightspace service account has not yet been configured or cannot be read.');
+			return null;
 		}
 
 		if ($mode === self::WRITE_MODE && (
@@ -78,7 +83,7 @@ class OauthFileServiceTokenHandler extends OauthServiceTokenHandler {
 			throw new BsAppRuntimeException('Unable to open file with Brightspace token: ' . error_get_last()['message']);
 		}
 
-		if (!flock($filePointer, $mode ===  self::READ_MODE ? LOCK_SH : LOCK_EX)) {
+		if (!flock($filePointer, $mode === self::READ_MODE ? LOCK_SH : LOCK_EX)) {
 			throw new BsAppRuntimeException('Unable to access Brightspace token file: ' . error_get_last()['message']);
 		}
 
@@ -86,8 +91,10 @@ class OauthFileServiceTokenHandler extends OauthServiceTokenHandler {
 	}
 
 	private function closeTokenFile(mixed $filePointer): void {
-		flock($filePointer, LOCK_UN);
-		fclose($filePointer);
+		if ($filePointer !== null) {
+			flock($filePointer, LOCK_UN);
+			fclose($filePointer);
+		}
 	}
 
 	private function getTokenFromFileReference(mixed $filePointer): AccessTokenInterface {
@@ -108,9 +115,13 @@ class OauthFileServiceTokenHandler extends OauthServiceTokenHandler {
 		}
 	}
 
-	public function setServiceToken(AccessTokenInterface $serviceToken): void {
-		$filePointer = $this->openTokenFile(self::WRITE_MODE, $this->tokenFile);
-		$this->writeTokenToFileReference($filePointer, $serviceToken);
-		$this->closeTokenFile($filePointer);
+	public function storeServiceToken(AccessTokenInterface $serviceToken): void {
+		$filePointer = $this->openTokenFile(self::WRITE_MODE);
+		try {
+			$this->writeTokenToFileReference($filePointer, $serviceToken);
+		} finally {
+			$this->closeTokenFile($filePointer);
+		}
 	}
+
 }

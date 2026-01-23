@@ -2,17 +2,17 @@
 
 namespace BsMain\Api;
 
-use BsMain\Api\BsQuizApi;
+use BsMain\Api\OauthToken\BrightspaceProvider;
 use BsMain\Api\OauthToken\OauthClientTokenHandler;
-use BsMain\Api\OauthToken\OauthDatabaseServiceTokenHandler;
 use BsMain\Api\OauthToken\OauthServiceTokenHandler;
 use BsMain\Api\OauthToken\OauthTokenHandler;
+use BsMain\Api\OauthToken\ServiceAuthType;
 use BsMain\Configuration\Configuration;
 use BsMain\Data\WhoAmIUser;
 use BsMain\Exception\BsAppRuntimeException;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
-use League\OAuth2\Client\Provider\AbstractProvider;
+use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
 use League\OAuth2\Client\Token\AccessTokenInterface;
@@ -22,29 +22,39 @@ use League\OAuth2\Client\Token\AccessTokenInterface;
  */
 class BsApiClient {
 	private Configuration $config;
-	private AbstractProvider $provider;
+	private BrightspaceProvider $provider;
 	private ClientInterface $http;
 	private OauthTokenHandler $tokenHandler;
 	private array $resourceApis = [];
 
 	public function __construct(Configuration $config, $useServiceAccount = false) {
 		$this->config = $config;
-		$this->provider = new GenericProvider($config->get('oauth2'));
+		$this->provider = new BrightspaceProvider($this->getOauth2Config($useServiceAccount));
 		$this->http = new Client();
 		$this->createTokenHandler($useServiceAccount);
 	}
 
 	/**
 	 * @noinspection SpellCheckingInspection
-	 * @throws IdentityProviderException
+	 * @throws IdentityProviderException|GuzzleException
 	 */
 	public function whoami(): WhoAmIUser {
 		return WhoAmIUser::instance($this->provider->getResourceOwner($this->tokenHandler->getAccessToken())->toArray());
 	}
+
+	private function getOauth2Config(bool $useServiceAccount): array {
+		$result = $this->config->get('oauth2');
+		if ($useServiceAccount && $this->config->getOptional('oauth2', 'serviceAuthType') === 'serviceAccount') {
+			$result['clientId'] = $this->config->get('oauth2', 'serviceClientId');
+		}
+		return $result;
+	}
 	
 	private function createTokenHandler($useServiceAccount): void {
+		$useCCAuth = $this->config->getOptional('oauth2', 'serviceAuthType') === 'serviceAccount';
 		$this->tokenHandler = $useServiceAccount
-			? OauthServiceTokenHandler::get($this->provider, $this->config)
+			? OauthServiceTokenHandler::get($this->provider, $this->config,
+				$useCCAuth ? ServiceAuthType::ServiceAccount : ServiceAuthType::RegularAccount)
 			: new OauthClientTokenHandler($this->provider, $this->config);
 	}
 
@@ -52,7 +62,7 @@ class BsApiClient {
 		if (!$this->tokenHandler instanceof OauthServiceTokenHandler) {
 			throw new BsAppRuntimeException('Can only register tokens for service token handlers.');
 		}
-		$this->tokenHandler->setServiceToken($serviceToken);
+		$this->tokenHandler->storeServiceToken($serviceToken);
 	}
 
 	public function getFullConfig(): Configuration {

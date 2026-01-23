@@ -2,14 +2,11 @@
 
 namespace BsMain\Api\OauthToken;
 
+use BsMain\Api\Jwk\ClientCredentialOptions;
 use BsMain\Configuration\Configuration;
 use BsMain\Exception\BsAppRuntimeException;
-use BsMain\Uuid;
-use Firebase\JWT\JWK;
-use Firebase\JWT\JWT;
 use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Client\Grant\ClientCredentials;
-use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 
@@ -23,7 +20,6 @@ abstract class OauthServiceTokenHandler extends OauthTokenHandler {
 	) {
 		parent::__construct($provider, $config);
 	}
-
 
 	protected abstract function storeServiceToken(AccessTokenInterface $serviceToken): void;
 	protected abstract function getStoredServiceToken(): ?AccessTokenInterface;
@@ -76,26 +72,16 @@ abstract class OauthServiceTokenHandler extends OauthTokenHandler {
 	 */
 	private function retrieveClientCredentialAccessToken(): AccessTokenInterface {
 		$grant = new ClientCredentials();
-		$options = [
-			'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-			'client_assertion' => $this->createAssertion(),
-			'scope' => $this->getFullConfig()->get('oauth2', 'scopes')
-		];
+		$options = ClientCredentialOptions::get(
+			$this->getProvider()->getClientId(),
+			$this->getProvider()->getBaseAccessTokenUrl([]),
+			$this->getFullConfig()->get('oauth2', 'jwkPrivate'),
+			$this->getFullConfig()->get('oauth2', 'scopes'),
+			$this->getFullConfig()->getOptional('oauth2', 'keyId') ?? 'bsm'
+		);
 		$token = $this->getProvider()->getAccessToken($grant, $options);
 		$this->setAccessToken($token);
 		return $token;
-	}
-
-	private function createAssertion(): string {
-		$clientId = $this->getProvider()->getClientId();
-		$jwk = [
-			'sub' => $clientId,
-			'iss' => $clientId,
-			'aud' => $this->getProvider()->getBaseAccessTokenUrl([]),
-			'jti' => Uuid::get(),
-			'exp' => time() + 5*60
-		];
-		return JWT::encode($jwk, $this->getFullConfig()->get('oauth2', 'jwkPrivate'), 'RS256', 1);
 	}
 
 }

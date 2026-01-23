@@ -55,7 +55,7 @@ Settings to indicate where the API can be found.
 | parameter        | value                                                                                                                               |
 |------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | `url`            | Brightspace instance URL, used to prefix relative paths, e.g. `https://institution.brightspace.com`                                 |
-| `api`            | Brightspace API base url, e.g. `https://institution.brightspace.com/d2l/api1`                                                       |
+| `api`            | Brightspace API base url, e.g. `https://institution.brightspace.com/d2l/api`                                                        |
 | `serviceAccount` | In case the `regularAccount` auth type for service accounts is used, indicate user name of the account that acts as service account |
 
 ### `db`

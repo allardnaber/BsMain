@@ -28,8 +28,7 @@ class Assertion {
 
 	public function getAssertion(): string {
 		$fields = get_object_vars($this);
-		unset($fields['privateKey']);
-		unset($fields['keyId']);
+		unset($fields['privateKey'], $fields['keyId']);
 		return JWT::encode($fields, $this->privateKey, 'RS256', $this->keyId);
 	}
 

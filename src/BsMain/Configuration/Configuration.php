@@ -14,6 +14,8 @@ class Configuration {
 	private array $config;
 
 	private const CACHE_FALLBACK = -1;
+	private const string ENV_CONFIG_PREFIX = 'CONFIG';
+	private const string ENV_CONFIG_SEPARATOR = '_';
 
 	public function __construct(array $config) {
 		$this->config = $config;
@@ -77,13 +79,16 @@ class Configuration {
 		}
 
 		try {
+			// Resolve potential environment variable overrides
+			$this->resolveEnvOverrides($this->config);
+
 			// Initialize vault if required
 			if (count(array_intersect(
 					['vaultUri', 'vaultToken', 'vaultPath'],
 					array_keys($this->config['config']))) === 3) {
 				$this->initVault();
 			}
-			$this->resolve($this->config);
+			$this->resolveSecrets($this->config);
 			$this->saveToCache();
 		} catch (Throwable $e) {
 			// Fall back to old cache if it's impossible to renew.
@@ -102,15 +107,37 @@ class Configuration {
 	/**
 	 * @throws ClientExceptionInterface
 	 */
-	private function resolve(&$part): void {
+	private function resolveSecrets(&$part): void {
 		if (is_array($part)) {
 			foreach ($part as &$subPart) {
-				$this->resolve($subPart);
+				$this->resolveSecrets($subPart);
 			}
 		} elseif ($part instanceof VaultSecret) {
 			$part = $this->vault->getSecret($part->getKey());
 		}
 		// else string: keep as is.
+	}
+
+	private function resolveEnvOverrides(&$part, array $path = []): void {
+		if (is_array($part)) {
+			foreach ($part as $key => &$subPart) {
+				$this->resolveEnvOverrides($subPart, [ ...$path, $key] );
+			}
+		} else {
+			// value can be overridden by environment variables
+			$envName = strtoupper(join(self::ENV_CONFIG_SEPARATOR, [ self::ENV_CONFIG_PREFIX, ...$path ]));
+			if (($value = getenv($envName)) !== false) {
+				$part = $this->parseEnvValue($value);
+			}
+		}
+	}
+
+	private function parseEnvValue(string $value): mixed {
+		if (preg_match('^(?:\\[.*\\]|{.*})$', $value)) {
+			return json_decode($value);
+		} else {
+			return $value;
+		}
 	}
 
 	private function getFromCache(int $maxAge): ?array {

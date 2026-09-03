@@ -56,6 +56,8 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 		$url = $this->getProvider()->getAuthorizationUrl();
 		$_SESSION[self::STATE_NAME] = $this->getProvider()->getState();
 		$_SESSION[self::REDIRECT_URL] = $_SERVER['REQUEST_URI'] ?? '';
+		file_put_contents('php://stderr', 'Registered redir url ' . $_SERVER['REQUEST_URI'] . ' session: ' . session_id(),FILE_APPEND);
+
 		if ($this->isSafari() && !isset($_GET[SafariOauthException::EXCEPTION_PARAM_NAME])) {
 			throw new SafariOauthException();
 		}
@@ -91,6 +93,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 	}
 
 	private function processInitialTokenResponse(): void {
+		file_put_contents('php://stderr', 'Received authcode for session: ' . session_id() . ' (redir: ' . ($_SESSION[self::REDIRECT_URL]??'') . ')',FILE_APPEND);
 		$this->verifyState();
 		$this->setAccessToken($this->getProvider()->getAccessToken(
 				'authorization_code', ['code' => $_GET['code']]

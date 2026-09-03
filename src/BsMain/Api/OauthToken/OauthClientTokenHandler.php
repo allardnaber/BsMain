@@ -78,11 +78,8 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 	 * Prevent CSRF attacks by checking if the state is unaltered.
 	 * @throws BsAppRuntimeException If we see an unexpected state.
 	 */
-	private function verifyState(): void{
-		if (empty($_GET['state']) ||
-				(isset($_SESSION[self::STATE_NAME]) &&
-				$_GET['state'] !== $_SESSION[self::STATE_NAME] )
-		) {
+	private function verifyState(): void {
+		if (empty($_GET['state']) || $_GET['state'] !== ($_SESSION[self::STATE_NAME] ?? '')) {
 			if (isset($_SESSION[self::STATE_NAME])) {
 				unset($_SESSION[self::STATE_NAME]);
 			}

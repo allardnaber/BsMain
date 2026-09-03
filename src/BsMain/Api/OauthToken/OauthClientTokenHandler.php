@@ -79,8 +79,7 @@ class OauthClientTokenHandler extends OauthTokenHandler {
 	 * @throws BsAppRuntimeException If we see an unexpected state.
 	 */
 	private function verifyState(): void {
-		if (empty($_GET['state']) ||
-				$_GET['state'] !== ($_SESSION[self::STATE_NAME] ?? '')
+		if (empty($_GET['state']) || $_GET['state'] !== ($_SESSION[self::STATE_NAME] ?? '')
 		) {
 			if (isset($_SESSION[self::STATE_NAME])) {
 				unset($_SESSION[self::STATE_NAME]);
